@@ -1,0 +1,61 @@
+.cfp__on-sale {
+  --cfp-on-sale-design-w: 750;
+  --cfp-on-sale-split-y: 578;
+  --cfp-on-sale-underline-y: 543;
+  --cfp-on-sale-feed-gap: 0px;
+
+  position: relative;
+  padding: 0;
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  overflow: hidden;
+}
+
+.cfp__on-sale-above {
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.cfp__on-sale-above::before {
+  content: '';
+  display: block;
+  padding-bottom: calc(var(--cfp-on-sale-split-y) / var(--cfp-on-sale-design-w) * 100%);
+}
+
+.cfp__on-sale-img--above {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+
+/* Figma 208:106716 — 相对 feed 图 (750×1450) 坐标 x75 y543 */
+.cfp__on-sale-section-underline {
+  position: absolute;
+  left: 10%;
+  top: calc(var(--cfp-on-sale-underline-y) / var(--cfp-on-sale-split-y) * 100%);
+  width: 9.2%;
+  height: auto;
+  pointer-events: none;
+}
+
+.cfp__on-sale-feed {
+  overflow: hidden;
+  line-height: 0;
+  background: #fff;
+}
+
+.cfp__on-sale-img--feed {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: calc(
+    var(--cfp-on-sale-split-y) / var(--cfp-on-sale-design-w) * -100% +
+      var(--cfp-on-sale-feed-gap)
+  );
+}

@@ -1,0 +1,10 @@
+.cfp__mini-games {
+  padding: 0 0 24px;
+}
+
+.cfp__mini-games-img {
+  display: block;
+  width: calc(100% - 10px);
+  margin: 0 auto;
+  height: auto;
+}

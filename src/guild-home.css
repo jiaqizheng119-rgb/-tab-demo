@@ -1,0 +1,2746 @@
+@import './tokens/weidian.css';
+@import './tokens/guild.css';
+
+/* —— 页面 —— */
+
+/* 横向滚动（与 activity-channel 范例一致） */
+.wd-scroll-x {
+  display: flex;
+  gap: var(--wd-space-3);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wd-scroll-x::-webkit-scrollbar {
+  display: none;
+}
+
+.guild-home {
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  width: min(var(--wd-frame), 100%);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: calc(88px + var(--safe-bottom));
+  font-family: var(--wd-font);
+  font-size: var(--wd-text-body);
+  line-height: 1.4;
+  color: var(--wd-ink);
+  background: var(--wd-surface);
+}
+
+.guild-home *,
+.guild-home *::before,
+.guild-home *::after {
+  box-sizing: border-box;
+}
+
+.guild-home button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.guild-home button:focus-visible {
+  outline: 2px solid var(--gh-accent);
+  outline-offset: 2px;
+}
+
+.guild-home img {
+  display: block;
+  max-width: 100%;
+}
+
+/* —— 头部 —— */
+
+@font-face {
+  font-family: 'Alibaba PuHuiTi';
+  src: url('https://puhuiti.oss-cn-hangzhou.aliyuncs.com/AlibabaPuHuiTi-3/AlibabaPuHuiTi-3-105-Heavy/AlibabaPuHuiTi-3-105-Heavy.woff2')
+    format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'vd_purple';
+  src: url('/fonts/vd_purple_heavy.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.gh-header {
+  position: relative;
+  min-height: 290px;
+  padding: 0 var(--gh-page-x) 10px;
+  overflow: hidden;
+}
+
+.gh-header__chrome {
+  position: relative;
+  z-index: 2;
+  margin: 0 calc(-1 * var(--gh-page-x)) 8px;
+}
+
+.gh-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 6px 12px 0;
+}
+
+.gh-status__time {
+  min-width: 54px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #000;
+}
+
+.gh-status__levels {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gh-status__icon {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.gh-status__icon--cellular {
+  width: 19px;
+  height: 12px;
+}
+
+.gh-status__icon--wifi {
+  width: 17px;
+  height: 12px;
+}
+
+.gh-status__icon--battery {
+  width: 27px;
+  height: 13px;
+}
+
+.gh-header__nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 12px;
+}
+
+.gh-header__hero {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.8) 11.5%,
+      rgba(255, 255, 255, 0.4) 49.7%,
+      rgba(255, 255, 255, 0.4) 88.5%
+    ),
+    #a778ff;
+  pointer-events: none;
+}
+
+.gh-header__nav-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gh-header__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+}
+
+.gh-nav__icon-img {
+  display: block;
+  object-fit: contain;
+}
+
+.gh-nav__icon-img--back {
+  width: 10px;
+  height: 18px;
+}
+
+.gh-nav__icon-img--share {
+  width: 21px;
+  height: 18px;
+}
+
+.gh-icon {
+  display: block;
+  object-fit: contain;
+}
+
+.gh-nav__icon {
+  width: 21px;
+  height: 21px;
+  color: var(--wd-ink);
+}
+
+.guild-home button.gh-header__more-link {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.9);
+  background: none;
+}
+
+.gh-header__more-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+  transform: translateX(-8px);
+}
+
+.gh-header__info {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.gh-header__avatar-wrap {
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.gh-header__avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gh-header__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+  padding-top: 0;
+}
+
+.gh-header__title-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+  min-height: 31px;
+}
+
+.guild-home h1.gh-header__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--gh-font-display);
+  font-size: 21px;
+  font-weight: 900;
+  font-style: normal;
+  font-synthesis: none;
+  line-height: 31px;
+  letter-spacing: 0;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guild-home button.gh-header__checkin {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 31px;
+  margin-left: auto;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  background: none;
+  border: none;
+  border-radius: 16.5px;
+  overflow: hidden;
+}
+
+.gh-header__checkin-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.gh-header__checkin-label {
+  position: relative;
+  z-index: 1;
+}
+
+.guild-home button.gh-header__members {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  min-height: 17px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+  background: none;
+}
+
+.gh-header__members {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gh-header__chips {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.guild-home button.gh-chip.gh-chip--glass {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 3px;
+  height: 21px;
+  padding: 3px 5px 3px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  border: none;
+  border-radius: 12px;
+  box-shadow: inset 1px 2px 4px rgba(255, 255, 255, 0.9);
+  background: linear-gradient(
+    172deg,
+    rgba(255, 255, 255, 0.2) 13%,
+    rgba(255, 255, 255, 0.53) 82%
+  );
+}
+
+.gh-chip--influence {
+  min-width: 118px;
+}
+
+.gh-chip--chat {
+  min-width: 84px;
+}
+
+.gh-chip__label {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.gh-chip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.gh-chip--glass {
+  border-radius: 12px;
+}
+
+.gh-chip__chart-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 13.5px;
+  height: 13.5px;
+}
+
+.gh-chip__chart-wrap .gh-chip__chart-icon {
+  display: block;
+  width: 10.125px;
+  height: 9.5625px;
+  object-fit: contain;
+}
+
+.gh-chevron-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  opacity: 0.7;
+}
+
+.gh-chevron-wrap .gh-chevron-right {
+  position: absolute;
+  top: 8.75%;
+  right: 23.33%;
+  bottom: 8.75%;
+  left: 31.67%;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scaleX(-1);
+}
+
+.gh-chevron-right {
+  display: block;
+  object-fit: contain;
+  transform: scaleX(-1);
+}
+
+.gh-chip__avatars {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 1px;
+}
+
+.gh-chip__avatars img {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  margin-right: -2px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.gh-chip__avatars img:nth-child(1) {
+  z-index: 3;
+  border-color: #ffe920;
+}
+
+.gh-chip__avatars img:nth-child(2) {
+  z-index: 2;
+  border-color: #b8c8e8;
+}
+
+.gh-chip__avatars img:nth-child(3) {
+  z-index: 1;
+  margin-right: 0;
+  border-color: #e8b4c8;
+}
+
+.gh-header__chips .gh-chevron-wrap {
+  flex-shrink: 0;
+}
+
+.gh-inline-arrow {
+  width: 5px;
+  height: 9px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  transform: scaleX(-1);
+}
+
+.gh-section__icon-img {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.gh-president-card {
+  position: relative;
+  z-index: 2;
+  margin-top: -10px;
+  width: 100%;
+  aspect-ratio: 705 / 200;
+  overflow: visible;
+}
+
+.gh-president-card__base {
+  position: absolute;
+  left: 2.13%;
+  right: 0;
+  bottom: 7.5px;
+  z-index: 0;
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 67%;
+  aspect-ratio: 1380 / 268;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.gh-president-card__tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 19.86%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
+  pointer-events: none;
+}
+
+.gh-president-card__info {
+  position: absolute;
+  left: 22.55%;
+  top: 36.5%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 54.9%;
+  min-width: 0;
+  background: none;
+}
+
+.gh-president-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gh-president-card__brace {
+  flex-shrink: 0;
+  width: 5px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.gh-president-card__brace--right {
+  transform: scaleX(-1);
+}
+
+.gh-president-card__name {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: #000;
+  white-space: nowrap;
+}
+
+.gh-president-card__role {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 15px;
+  margin-left: 3px;
+}
+
+.gh-president-card__role-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 15px;
+  background: #a778ff;
+}
+
+.gh-president-card__role-border {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 15px;
+  background: linear-gradient(
+    -55deg,
+    rgba(255, 255, 255, 0) 17.5%,
+    rgba(255, 255, 255, 0.4) 44.6%,
+    rgba(255, 255, 255, 0) 71.6%
+  );
+  pointer-events: none;
+}
+
+.gh-president-card__role-text {
+  position: absolute;
+  left: 6.27px;
+  top: 50%;
+  z-index: 1;
+  width: 17.5px;
+  height: 8.6px;
+  transform: translateY(-50%);
+  object-fit: contain;
+}
+
+.gh-president-card__badges-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gh-president-card__badges {
+  flex-shrink: 0;
+  width: 102px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.gh-president-card__achieve-text {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.gh-president-card__emblem {
+  position: absolute;
+  left: 80%;
+  top: 21.5%;
+  z-index: 2;
+  width: 19.3%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* —— 内容区 —— */
+
+.gh-content {
+  position: relative;
+  margin-top: -16px;
+  padding: var(--gh-page-x);
+  padding-bottom: var(--wd-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gh-section-gap);
+}
+
+.gh-content::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 135px;
+  background: linear-gradient(180deg, #f5f0ff 0%, var(--wd-surface) 100%);
+  border-radius: var(--wd-radius-lg) var(--wd-radius-lg) 0 0;
+  pointer-events: none;
+}
+
+.gh-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* —— 紧凑条（公告 / 重要任务） —— */
+
+.gh-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--gh-strip-h);
+  padding: 0 9px 0 6px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--gh-strip-radius);
+}
+
+.gh-strip__icon-wrap--megaphone {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.gh-strip__icon-wrap--megaphone .gh-strip__icon {
+  position: absolute;
+  top: 10.02%;
+  right: 5.21%;
+  bottom: 13.84%;
+  left: 5.42%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gh-strip__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.gh-strip__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-strip--activity {
+  justify-content: flex-start;
+}
+
+.gh-strip--activity .gh-strip__text {
+  flex: 1;
+}
+
+.gh-strip__action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--wd-ink);
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+.gh-strip__action:active {
+  opacity: 0.65;
+}
+
+/* —— 双列卡片区（第一列：工会活动） —— */
+
+.gh-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gh-content-gap);
+}
+
+.gh-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-space-3);
+}
+
+.gh-section__head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.gh-section__icon {
+  width: var(--gh-heading-icon);
+  height: var(--gh-heading-icon);
+  color: var(--wd-ink);
+}
+
+.gh-section__title {
+  margin: 0;
+  font-size: var(--gh-heading);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.gh-panel {
+  background: var(--wd-surface-elevated);
+  border-radius: var(--wd-radius-lg);
+  overflow: hidden;
+}
+
+.gh-panel__list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* —— 任务行（与粉丝今日任务卡片一致） —— */
+
+.gh-task-row {
+  display: grid;
+  grid-template-columns: var(--gh-task-icon) 1fr auto;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--gh-task-h);
+  padding: 12px;
+  background: var(--wd-surface-elevated);
+}
+
+.gh-task-row + .gh-task-row {
+  border-top: 1px solid var(--wd-line);
+}
+
+.gh-task-row__icon {
+  width: var(--gh-task-icon);
+  height: var(--gh-task-icon);
+  border-radius: var(--wd-radius-md);
+  object-fit: cover;
+  background: var(--gh-accent-soft);
+}
+
+.gh-task-row__icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--gh-task-icon);
+  height: var(--gh-task-icon);
+  border-radius: var(--wd-radius-md);
+  background: var(--gh-accent-soft);
+  color: var(--gh-accent);
+}
+
+.gh-task-row__icon-wrap svg {
+  width: 28px;
+  height: 28px;
+}
+
+.gh-task-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gh-task-row__title {
+  margin: 0;
+  font-size: var(--wd-text-body);
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-task-row__progress {
+  position: relative;
+  height: var(--gh-progress-h);
+  border-radius: var(--wd-radius-pill);
+  background: var(--gh-accent-soft);
+  overflow: hidden;
+}
+
+.gh-task-row__progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gh-accent);
+}
+
+.gh-task-row__desc {
+  margin: 0;
+  font-size: var(--wd-text-caption);
+  line-height: 1.25;
+  color: var(--wd-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-task-row__btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--gh-task-btn-h);
+  padding: 0 9px;
+  font-size: var(--wd-text-caption);
+  font-weight: 500;
+  color: var(--wd-ink);
+  background: var(--wd-surface-elevated);
+  border: 1px solid rgba(192, 192, 192, 0.8);
+  border-radius: var(--gh-task-radius);
+}
+
+.gh-task-row__btn:active {
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guild-home * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* —— 异形任务卡片外壳（Figma 24:1186 · 750→375） —— */
+
+.gh-task-shell {
+  position: relative;
+  width: 100%;
+  min-height: 303px;
+  border-radius: 12px;
+  overflow: hidden;
+  color: var(--wd-ink);
+  isolation: isolate;
+  background: linear-gradient(180deg, #c0aaff 0%, #f5f0ff 100%);
+}
+
+.gh-task-shell__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #c0aaff 0%, #f5f0ff 100%);
+  pointer-events: none;
+}
+
+.gh-task-shell__tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 42px;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+}
+
+.gh-task-shell__tab-action {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  height: auto;
+  padding: 0;
+  pointer-events: none;
+}
+
+.gh-task-shell__tab-action > * {
+  pointer-events: auto;
+}
+
+.gh-task-shell__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Figma 750：上 30 / 左右 30 / 下 24 → 375 减半 */
+  padding: 15px 15px 12px;
+}
+
+.gh-task-shell__head {
+  position: relative;
+  align-self: flex-start;
+  max-width: calc(100% - 88px);
+  padding-right: 4px;
+}
+
+.gh-task-shell__title-blur {
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  width: min(213px, calc(100% + 6px));
+  height: 33px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.38);
+  filter: blur(9px);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.gh-task-shell__title {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.gh-task-shell__panel {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__compact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--wd-surface-elevated);
+  border-radius: 9px;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__title {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__cover-wrap {
+  width: 51px;
+  height: 51px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__cover-wrap .gh-spotlight-card__cover {
+  object-fit: contain;
+  padding: 3px;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__intro {
+  font-size: 11px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__footer {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__avatar--top {
+  width: 32px;
+  height: 32px;
+  margin-right: -5px;
+}
+
+.gh-spotlight-card--shell .gh-spotlight-card__avatar--sm {
+  width: 13px;
+  height: 13px;
+}
+
+/* —— 最新任务 / 活动卡片 —— */
+
+.gh-latest-task {
+  display: flex;
+  flex-direction: column;
+}
+
+.gh-spotlight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 157px;
+  flex: 0 0 157px;
+  padding: 9px;
+  border-radius: 12px;
+  color: var(--wd-ink);
+}
+
+.gh-spotlight-card--shell {
+  width: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  gap: 0;
+  background: none;
+}
+
+.gh-spotlight-card--shell .gh-task-shell__panel {
+  display: block;
+}
+
+.gh-spotlight-card--featured,
+.gh-spotlight-card--list {
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+.gh-spotlight-card__label {
+  margin: 0;
+  font-size: var(--gh-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--wd-ink);
+}
+
+.gh-spotlight-card__cover-wrap {
+  flex-shrink: 0;
+  width: 63px;
+  height: 63px;
+  border: 2px solid #fff;
+  border-radius: 11px;
+  overflow: hidden;
+}
+
+.gh-spotlight-card__cover-wrap--icon {
+  border: none;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.gh-spotlight-card__cover-wrap--icon .gh-spotlight-card__cover {
+  object-fit: contain;
+  padding: 4px;
+}
+
+.gh-spotlight-card__cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gh-spotlight-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gh-spotlight-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.gh-spotlight-card__intro {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--wd-ink);
+  opacity: 0.7;
+}
+
+.gh-spotlight-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.gh-spotlight-card__footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.gh-spotlight-card__participant-hint {
+  margin: 0;
+  font-size: var(--wd-text-caption);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--wd-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-spotlight-card__avatars {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.gh-spotlight-card__avatar-row {
+  display: flex;
+  align-items: center;
+  height: 16px;
+}
+
+.gh-spotlight-card__avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.gh-spotlight-card__avatar--top {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin-right: -6px;
+  border: 1px solid #ffe920;
+  border-radius: 18px;
+  overflow: visible;
+}
+
+.gh-spotlight-card__avatar--top img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.gh-spotlight-card__avatar--sm {
+  width: 14px;
+  height: 14px;
+  margin-right: -3px;
+  border: 1px solid #fff;
+}
+
+.gh-spotlight-card__badge {
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  padding: 1px 2px;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--wd-ink);
+  background: linear-gradient(114deg, #ffe920 4.4%, #faaa29 92%);
+  border-radius: 3px;
+}
+
+.gh-spotlight-card__action {
+  flex-shrink: 0;
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+}
+
+.guild-home button.gh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: var(--gh-btn-min-w);
+  height: var(--gh-btn-h);
+  padding: 0 var(--gh-btn-px);
+  font-size: var(--gh-btn-text);
+  font-weight: 500;
+  line-height: 1;
+  color: #fff;
+  background: var(--gh-accent);
+  border: none;
+  border-radius: var(--gh-btn-radius);
+  white-space: nowrap;
+}
+
+.guild-home button.gh-btn-primary:active {
+  opacity: 0.85;
+}
+
+.gh-spotlight-card__action .gh-btn-primary,
+.guild-home button.gh-btn-primary.gh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gh-spotlight-card__action:active .gh-btn-primary {
+  opacity: 0.85;
+}
+
+/* —— 会长任务 —— */
+
+.gh-president {
+  padding: 0;
+  background: none;
+  overflow: visible;
+}
+
+.gh-president .gh-task-shell__content {
+  gap: 12px;
+}
+
+.guild-home button.gh-president__more {
+  padding: 0;
+  background: none;
+  font-size: 7px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.gh-president__more {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  /* Figma 750：22px → 375 为 11px，视觉对齐浅色 tab 区 */
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.gh-president__more-arrow {
+  display: block;
+  width: 4px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  opacity: 0.7;
+  transform: scaleX(-1);
+}
+
+.gh-president__achievement {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.gh-president__badge {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.gh-president__badge-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gh-president__badge-img--overlay {
+  pointer-events: none;
+}
+
+.gh-president__achievement-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 7px;
+}
+
+.gh-president__achievement-text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.gh-president__steps {
+  display: flex;
+  gap: 7px;
+  width: 100%;
+  max-width: 260px;
+  height: 6px;
+}
+
+.gh-president__steps span {
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.gh-president__list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.gh-president-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 51px;
+  padding: 0 12px;
+  background: #fff;
+  border-radius: 9px;
+}
+
+.gh-president-row__title {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-president-row__progress {
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+}
+
+.guild-home .gh-president-row button.gh-btn-primary {
+  height: 27px;
+  min-width: 54px;
+  padding: 0 9px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+/* —— 活动列表二级页 —— */
+
+.guild-home--subpage {
+  background: var(--wd-surface);
+}
+
+.gh-subpage {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  padding: 44px var(--gh-page-x) 12px;
+  background: var(--gh-accent-bg);
+}
+
+.gh-subpage__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--wd-ink);
+  text-decoration: none;
+}
+
+.gh-subpage__back {
+  width: 21px;
+  height: 21px;
+}
+
+.gh-subpage__title {
+  margin: 0;
+  font-size: var(--wd-text-nav);
+  font-weight: 600;
+  text-align: center;
+}
+
+.gh-subpage__spacer {
+  width: 44px;
+}
+
+.gh-subpage__body {
+  padding: var(--gh-page-x);
+  padding-bottom: var(--wd-space-8);
+}
+
+.gh-subpage__hint {
+  margin: 0 0 var(--gh-section-gap);
+  font-size: var(--wd-text-caption);
+  color: var(--wd-ink-muted);
+}
+
+.gh-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gh-content-gap);
+}
+
+/* —— 小游戏横滑 —— */
+
+.gh-games {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-space-3);
+}
+
+.gh-games__list {
+  gap: 9px;
+  padding-bottom: 2px;
+}
+
+.gh-game-card {
+  flex: 0 0 157px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 180px;
+  padding: 9px;
+  border-radius: 12px;
+  color: var(--wd-ink);
+}
+
+.gh-game-card__cover {
+  width: 63px;
+  height: 63px;
+  border: 2px solid #fff;
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.gh-game-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.gh-game-card__hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: 0.7;
+}
+
+.gh-game-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gh-game-card__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.gh-game-card__social {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.gh-game-card__top {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin-right: -6px;
+  border: 2px solid #ffe920;
+  border-radius: 50%;
+}
+
+.gh-game-card__top-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.gh-game-card__top-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gh-game-card__top-badge {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  padding: 1px 2px;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wd-ink);
+  background: linear-gradient(114deg, #ffe920 4.4%, #faaa29 92%);
+  border-radius: 3px;
+}
+
+.gh-game-card__players {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+}
+
+.gh-game-card__players img {
+  width: 14px;
+  height: 14px;
+  margin-right: -3px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.guild-home button.gh-game-card__btn {
+  flex-shrink: 0;
+  height: 27px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #eee5ff;
+  background: #000;
+  border: none;
+  border-radius: 9px;
+}
+
+.guild-home button.gh-game-card__btn:active {
+  opacity: 0.85;
+}
+
+/* —— 粉丝影响力 TOP3 —— */
+
+.gh-influence__panel {
+  position: relative;
+  overflow: hidden;
+  padding: 12px 12px 14px;
+  border-radius: 12px;
+  background:
+    linear-gradient(
+      156deg,
+      rgba(255, 255, 255, 0.7) 11%,
+      rgba(255, 255, 255, 0.9) 29%,
+      rgba(255, 255, 255, 0.6) 66%,
+      rgba(255, 255, 255, 0.6) 89%
+    ),
+    linear-gradient(90deg, #a778ff, #a778ff);
+}
+
+.gh-influence__sparkle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.gh-influence__title {
+  position: relative;
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.gh-influence__stage {
+  position: relative;
+  min-height: 210px;
+}
+
+.gh-influence__podium {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  align-items: end;
+  gap: 4px;
+  padding: 0 4px 88px;
+}
+
+.gh-influence__podium-art {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 0;
+  width: 92%;
+  max-width: 333px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gh-influence__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gh-influence__slot--first {
+  order: 2;
+  padding-bottom: 18px;
+}
+
+.gh-influence__slot--second {
+  order: 1;
+  padding-bottom: 8px;
+}
+
+.gh-influence__slot--third {
+  order: 3;
+  padding-bottom: 8px;
+}
+
+.gh-influence__avatar-wrap {
+  position: relative;
+}
+
+.gh-influence__slot--first .gh-influence__avatar-wrap {
+  width: 74px;
+  height: 74px;
+}
+
+.gh-influence__slot--second .gh-influence__avatar-wrap,
+.gh-influence__slot--third .gh-influence__avatar-wrap {
+  width: 62px;
+  height: 62px;
+}
+
+.gh-influence__avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.gh-influence__slot--first .gh-influence__avatar {
+  border: 3px solid #ffe920;
+}
+
+.gh-influence__slot--second .gh-influence__avatar {
+  border: 3px solid #b8c8e8;
+}
+
+.gh-influence__slot--third .gh-influence__avatar {
+  border: 3px solid #e8b48a;
+}
+
+.gh-influence__rank-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: var(--gh-accent);
+  border: 2px solid #fff;
+  border-radius: 50%;
+}
+
+.gh-influence__score {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.gh-influence__name {
+  margin: 4px 0 0;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-influence__level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  margin-top: 4px;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-style: italic;
+  color: #fff;
+  background: var(--gh-accent);
+  border-radius: var(--wd-radius-pill);
+}
+
+.gh-influence__cta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 39px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--wd-ink);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 13px;
+}
+
+/* —— 群聊大厅 —— */
+
+.gh-chats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wd-space-3);
+}
+
+.gh-chats__list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.gh-chat-row {
+  display: grid;
+  grid-template-columns: 51px 1fr 21px;
+  gap: 9px;
+  align-items: center;
+  min-height: 75px;
+  padding: 12px;
+  background: var(--wd-surface-elevated);
+  border-radius: 12px;
+}
+
+.gh-chat-row__avatar {
+  width: 51px;
+  height: 51px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--wd-line);
+}
+
+.gh-chat-row__main {
+  min-width: 0;
+}
+
+.gh-chat-row__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gh-chat-row__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-chat-row__meta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--wd-ink-secondary);
+}
+
+.gh-chat__live {
+  width: 12px;
+  height: 12px;
+  color: var(--gh-accent);
+}
+
+.gh-chat-row__desc {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--wd-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-chat-row__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  color: var(--wd-ink-muted);
+}
+
+.gh-chat-row__more .gh-nav__icon {
+  width: 18px;
+  height: 18px;
+}
+
+.gh-chats__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 45px;
+  font-size: 14px;
+  color: var(--wd-ink);
+  background: var(--wd-surface-elevated);
+  border-radius: 12px;
+}
+
+.gh-end {
+  margin: 8px 0 0;
+  padding: 20px 0 8px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--wd-ink-muted);
+}
+
+/* —— 底部操作栏 —— */
+
+.gh-footer {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 20;
+  width: min(var(--wd-frame), 100%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gh-footer__fade {
+  height: 48px;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 248, 248, 0) 0%,
+    rgba(248, 248, 248, 0.92) 55%,
+    var(--wd-surface) 100%
+  );
+  pointer-events: none;
+}
+
+.gh-footer__bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 var(--gh-page-x) calc(8px + var(--safe-bottom));
+  background: var(--wd-surface);
+  pointer-events: auto;
+}
+
+.guild-home button.gh-footer__round {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  color: var(--wd-ink);
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.gh-footer__round .gh-nav__icon {
+  width: 21px;
+  height: 21px;
+}
+
+.gh-footer__glyph {
+  width: 24px;
+  height: 24px;
+}
+
+.guild-home button.gh-footer__primary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: var(--gh-accent);
+  border-radius: 25px;
+  box-shadow: 0 3px 10px rgba(167, 120, 255, 0.35);
+}
+
+.gh-footer__sparkle-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+/* —— 发布活动底部弹层（参考 ai探索中 · 59:2648） —— */
+
+.gh-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.gh-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+.gh-sheet__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(var(--wd-frame), 100%);
+  max-height: min(70vh, 568px);
+  background: var(--wd-surface-elevated);
+  border-radius: 15px 15px 0 0;
+  animation: gh-sheet-rise 0.28s ease-out;
+}
+
+@keyframes gh-sheet-rise {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.gh-sheet__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  min-height: 54px;
+  padding: 15px;
+  flex-shrink: 0;
+}
+
+.gh-sheet__title {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: center;
+  margin: 0;
+  max-width: calc(100% - 36px);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  text-align: center;
+  color: var(--wd-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-sheet__close {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: var(--wd-ink);
+  background: none;
+  border: none;
+}
+
+.gh-sheet__close-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.gh-sheet__body {
+  flex: 1;
+  min-height: 0;
+  padding: 0 15px 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gh-sheet__intro {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--wd-ink-muted);
+}
+
+.gh-sheet__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.gh-sheet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 15px;
+  text-align: left;
+  background: var(--wd-surface);
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.gh-sheet-card:active {
+  opacity: 0.92;
+}
+
+.gh-sheet-card__title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--wd-ink);
+}
+
+.gh-sheet-card__hint {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.gh-sheet-card__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding-top: 9px;
+}
+
+.gh-sheet-tile {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 51px;
+  height: 51px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.gh-sheet-tile__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gh-sheet-tile__img--fg {
+  position: absolute;
+  inset: 0;
+}
+
+.gh-sheet__footer {
+  flex-shrink: 0;
+  padding: 8px 15px 0;
+  background: var(--wd-surface-elevated);
+}
+
+.gh-sheet__home-indicator {
+  width: 134px;
+  height: 5px;
+  margin: 0 auto 8px;
+  border-radius: 100px;
+  background: #000;
+}
+
+.gh-sheet .gh-sheet__close {
+  cursor: pointer;
+}
+
+/* —— 签到奖励弹窗 —— */
+
+.gh-checkin {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 15px;
+}
+
+.gh-checkin--embedded {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.gh-checkin__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.gh-checkin__wrap {
+  position: relative;
+  z-index: 1;
+  width: min(315px, 100%);
+  padding-top: 52px;
+  overflow: visible;
+  animation: gh-checkin-in 0.26s ease-out;
+}
+
+@keyframes gh-checkin-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.gh-checkin__mascot-wrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 0;
+  width: 108px;
+  transform: translateX(-50%) translateY(-3px);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.gh-checkin__mascot {
+  display: block;
+  width: 108px;
+  height: 108px;
+  object-fit: contain;
+}
+
+.gh-checkin__mascot-bubble-wrap {
+  position: absolute;
+  top: 6px;
+  left: -26px;
+  z-index: 2;
+}
+
+.gh-checkin__mascot-bubble {
+  position: relative;
+  margin: 0;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--wd-ink);
+  white-space: nowrap;
+  background: #fff;
+  border: 1.5px solid rgba(167, 120, 255, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(87, 44, 160, 0.12);
+  opacity: 0;
+  transform: scale(0.86);
+  transition: none;
+}
+
+.gh-checkin__mascot-bubble::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-right: 1.5px solid rgba(167, 120, 255, 0.35);
+  border-bottom: 1.5px solid rgba(167, 120, 255, 0.35);
+  transform: rotate(45deg);
+}
+
+.gh-checkin__mascot-deco {
+  position: absolute;
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gh-checkin__mascot-deco--1 {
+  top: -10px;
+  left: -6px;
+  color: #ffc94a;
+  animation: gh-checkin-deco-pop 0.45s ease-out 0.05s forwards;
+}
+
+.gh-checkin__mascot-deco--2 {
+  top: 2px;
+  right: -14px;
+  color: var(--gh-accent);
+  font-size: 9px;
+  animation: gh-checkin-deco-pop 0.45s ease-out 0.12s forwards;
+}
+
+.gh-checkin__mascot-deco--3 {
+  bottom: -2px;
+  left: -12px;
+  color: #ff9fd6;
+  font-size: 11px;
+  animation: gh-checkin-deco-pop 0.45s ease-out 0.18s forwards;
+}
+
+.gh-checkin__mascot-deco--4 {
+  top: -8px;
+  right: 4px;
+  color: #7f3dfb;
+  font-size: 8px;
+  animation: gh-checkin-deco-pop 0.45s ease-out 0.24s forwards;
+}
+
+@keyframes gh-checkin-deco-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.gh-checkin__mascot-wrap--active:not(.gh-checkin__mascot-wrap--success) {
+  animation:
+    gh-checkin-mascot-rise 0.55s ease-out forwards,
+    gh-checkin-mascot-wiggle 1.1s ease-in-out 0.55s infinite;
+}
+
+.gh-checkin__mascot-wrap--success {
+  animation: none;
+  transform: translateX(-50%) translateY(-14px);
+  transition: transform 0.45s ease-out;
+}
+
+.gh-checkin__mascot-wrap--active:not(.gh-checkin__mascot-wrap--success) .gh-checkin__mascot-bubble {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.28s ease 0.32s,
+    transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) 0.32s;
+}
+
+.gh-checkin__mascot-wrap--success .gh-checkin__mascot-bubble {
+  opacity: 1;
+  transform: scale(1);
+  color: var(--gh-accent);
+  font-weight: 700;
+  border-color: rgba(167, 120, 255, 0.55);
+  box-shadow: 0 4px 14px rgba(167, 120, 255, 0.22);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1),
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.gh-checkin__mascot-wrap--success .gh-checkin__mascot-bubble::after {
+  border-right-color: rgba(167, 120, 255, 0.55);
+  border-bottom-color: rgba(167, 120, 255, 0.55);
+}
+
+@keyframes gh-checkin-mascot-rise {
+  from {
+    transform: translateX(-50%) translateY(-3px);
+  }
+
+  to {
+    transform: translateX(-50%) translateY(-14px);
+  }
+}
+
+@keyframes gh-checkin-mascot-wiggle {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(-14px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(calc(-50% - 3px)) translateY(-18px) rotate(-2.5deg);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-12px) rotate(0deg);
+  }
+
+  75% {
+    transform: translateX(calc(-50% + 3px)) translateY(-17px) rotate(2.5deg);
+  }
+}
+
+/* —— 方案二：右侧静态吉祥物 —— */
+
+.gh-checkin--scheme2 .gh-checkin__wrap {
+  margin-inline: auto;
+  animation: none;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-wrap {
+  left: auto;
+  right: -16px;
+  top: -14px;
+  transform: none;
+  animation: none !important;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-wrap--active:not(.gh-checkin__mascot-wrap--success),
+.gh-checkin--scheme2 .gh-checkin__mascot-wrap--success {
+  left: auto;
+  right: -16px;
+  top: -14px;
+  transform: none;
+  animation: none !important;
+  transition: none;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-bubble-wrap {
+  top: -4px;
+  left: -22px;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-bubble {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-wrap--success .gh-checkin__mascot-bubble {
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gh-checkin--scheme2 .gh-checkin__mascot-wrap--success .gh-checkin__mascot-deco {
+  opacity: 1;
+  animation: none;
+}
+
+/* —— 方案三：顶部摇摆 + 单行卡片 —— */
+
+.gh-checkin--scheme3 .gh-checkin__wrap {
+  margin-inline: auto;
+  animation: none;
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap {
+  transform: translateX(-50%) translateY(-14px);
+  animation: none !important;
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--active:not(.gh-checkin__mascot-wrap--success) {
+  animation: gh-checkin-mascot-wiggle 1.1s ease-in-out infinite !important;
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--success {
+  animation: none !important;
+  transform: translateX(-50%) translateY(-14px);
+  transition: none;
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--active .gh-checkin__mascot-bubble,
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--success .gh-checkin__mascot-bubble {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--success .gh-checkin__mascot-bubble {
+  color: var(--gh-accent);
+  font-weight: 700;
+  border-color: rgba(167, 120, 255, 0.55);
+  box-shadow: 0 4px 14px rgba(167, 120, 255, 0.22);
+}
+
+.gh-checkin--scheme3 .gh-checkin__mascot-wrap--success .gh-checkin__mascot-deco {
+  opacity: 1;
+  animation: none;
+}
+
+.gh-checkin--scheme3 .gh-checkin__grid--single .gh-checkin__row {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.gh-checkin--scheme3 .gh-checkin-day {
+  height: 92px;
+  border-radius: 8px;
+}
+
+.gh-checkin--scheme3 .gh-checkin-day__tag {
+  top: 3px;
+  padding: 1px 3px;
+  font-size: 7px;
+  border-radius: 3px;
+}
+
+.gh-checkin--scheme3 .gh-checkin-day__coin {
+  width: 28px;
+  height: 28px;
+}
+
+.gh-checkin--scheme3 .gh-checkin-day__reward {
+  font-size: 11px;
+}
+
+.gh-checkin--scheme3 .gh-checkin-day__label {
+  bottom: 8px;
+  font-size: 9px;
+}
+
+.gh-checkin__panel {
+  position: relative;
+  z-index: 1;
+  padding: 18px 15px 15px;
+  background: linear-gradient(180deg, #f5f0ff 0%, #fff 22%);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(87, 44, 160, 0.18);
+}
+
+.gh-checkin__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.gh-checkin__close-icon {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.gh-checkin__banner {
+  margin: 0 28px;
+  font-family: var(--gh-font-display);
+  font-size: 22px;
+  font-weight: 900;
+  font-style: normal;
+  font-synthesis: none;
+  line-height: 1.15;
+  text-align: center;
+  letter-spacing: 0.01em;
+  color: var(--gh-accent);
+}
+
+.gh-checkin__subtitle {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.gh-checkin__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.gh-checkin__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.gh-checkin__row--center {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: calc(75% + 4.5px);
+  margin-inline: auto;
+}
+
+.gh-checkin-day {
+  position: relative;
+  display: block;
+  height: 100px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 9px;
+  box-sizing: border-box;
+}
+
+.gh-checkin-day--current {
+  border: 2.5px solid var(--gh-accent);
+  box-shadow: 0 0 0 1px rgba(167, 120, 255, 0.08);
+}
+
+.gh-checkin-day--done {
+  background: rgba(193, 166, 255, 0.12);
+  border: 2px solid var(--gh-accent);
+}
+
+.gh-checkin-day--locked {
+  opacity: 0.55;
+}
+
+.gh-checkin-day__body {
+  position: static;
+}
+
+.gh-checkin-day__tag {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1.44;
+  color: var(--gh-accent);
+  background: rgba(167, 120, 255, 0.12);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.gh-checkin-day__coin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+}
+
+.gh-checkin-day__coin-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gh-checkin-day__reward {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: #7f3dfb;
+}
+
+.gh-checkin-day__label {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.gh-checkin-day__done {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: #fff;
+  background: var(--gh-accent);
+  border-radius: 50%;
+}
+
+.gh-checkin-day__check {
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+
+.gh-checkin__hint {
+  margin: 12px 0 0;
+  font-size: 10px;
+  line-height: 1.45;
+  text-align: center;
+  color: rgba(167, 120, 255, 0.85);
+}
+
+.gh-checkin__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  margin-top: 12px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(90deg, #9b6bff 0%, #a778ff 45%, #d084fc 100%);
+  border: none;
+  border-radius: 22px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(167, 120, 255, 0.35);
+}
+
+.gh-checkin__cta:active:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(0.99);
+}
+
+.gh-checkin__cta:disabled {
+  color: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+  cursor: default;
+}
+
+.gh-checkin .gh-checkin__close,
+.gh-checkin .gh-checkin__cta {
+  font: inherit;
+  cursor: pointer;
+}
+
+.gh-checkin .gh-checkin__cta {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+

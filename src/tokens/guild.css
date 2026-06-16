@@ -1,0 +1,45 @@
+/**
+ * 公会主页样式（Figma xsXBbcrdgX9h6n8z3wEPUs · 公会主页）
+ * 画幅：设计稿 750px → 实现 375px（数值 ÷2）
+ */
+
+:root {
+  /* 应援色（公会主题）— 最深 #c1a6ff */
+  --gh-accent: #a778ff;
+  --gh-accent-deep: #a778ff;
+  --gh-accent-soft: rgba(193, 166, 255, 0.16);
+  --gh-accent-bg: linear-gradient(180deg, #f0eaff 0%, #f7f2ff 45%, #f8f8f8 100%);
+  --gh-accent-muted: #e8dcff;
+
+  /* 布局 */
+  --gh-page-x: 12px;
+  --gh-content-gap: 12px;
+  --gh-section-gap: 16px;
+
+  /* 紧凑入口条（公告 / 重要任务） */
+  --gh-strip-h: 39px;
+  --gh-strip-radius: 9px;
+  --gh-strip-bg: rgba(0, 0, 0, 0.02);
+  --gh-strip-icon: 18px;
+
+  /* 任务行卡片 */
+  --gh-task-h: 75px;
+  --gh-task-icon: 51px;
+  --gh-task-radius: 9px;
+  --gh-task-btn-h: 27px;
+  --gh-progress-h: 3px;
+
+  /* 模块标题 */
+  --gh-heading: 14px;
+  --gh-heading-icon: 18px;
+
+  /* 主按钮（Figma 14:24699 · 750→375） */
+  --gh-btn-h: 24px;
+  --gh-btn-min-w: 54px;
+  --gh-btn-px: 9px;
+  --gh-btn-radius: 8px;
+  --gh-btn-text: 12px;
+
+  /* 展示标题（签到弹窗等） */
+  --gh-font-display: 'vd_purple', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+}

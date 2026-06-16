@@ -1,0 +1,237 @@
+/* 首页：一张 PNG 切成上下两段，中间插入进度条（文档流），避免遮挡游戏区 */
+
+.activity-shell {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 28px;
+  background: #e8eaef;
+  box-sizing: border-box;
+}
+
+.activity-shell h1,
+.activity-shell h2 {
+  font-family: inherit;
+  font-weight: inherit;
+  margin: 0;
+}
+
+.figma-stage {
+  /* 从图顶向下，切在这一比例：上半段结束 = 投票条下缘附近；若仍切到字/留白不对，只调这个数（例如 0.44～0.52） */
+  --cut: 0.48;
+  --frame-w: 750;
+  --frame-h: 1624;
+  width: min(375px, 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  line-height: 0;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.12),
+    0 2px 6px rgba(15, 23, 42, 0.08);
+  background: #eceef3;
+}
+
+/* 上图：只显示整图的上 --cut 部分 */
+.figma-split--top {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: calc(var(--frame-w) / (var(--frame-h) * var(--cut)));
+}
+
+.figma-split--top .figma-shot {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 下图：只显示整图的下 (1 - --cut) 部分；用位移对齐同一底图 */
+.figma-split--bottom {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: calc(
+    var(--frame-w) / (var(--frame-h) * (1 - var(--cut)))
+  );
+}
+
+.figma-split--bottom .figma-shot--shift {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: translateY(calc(-1 * var(--cut) * 100%));
+}
+
+.hotspot {
+  position: absolute;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 相对「上图」区域：活动规则大致在右上 */
+.hotspot--rules {
+  top: 5%;
+  right: 3%;
+  width: 26%;
+  height: 14%;
+}
+
+.hotspot:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* 中间插入条：把下图整体顶下去，不再盖住游戏图标 */
+.reward-slot--flow {
+  padding: 12px 12px 14px;
+}
+
+.reward-chip {
+  padding: 12px 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.1);
+}
+
+/* 标题行 + 百分比 */
+.reward-chip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reward-chip__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.reward-chip__pct {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #7c3aed;
+}
+
+/* 标题（与百分比同一行视为标题区）与正文说明：固定 8px */
+.reward-chip__hint {
+  margin: 8px 0 12px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.reward-chip__track {
+  height: 9px;
+  border-radius: 999px;
+  background: #e8ecf4;
+  overflow: hidden;
+  outline: 1px solid #e5e7eb;
+}
+
+.reward-chip__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #818cf8 0%,
+    #6366f1 40%,
+    #a855f7 100%
+  );
+  transition: width 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* —— 活动规则页 —— */
+
+.activity-page {
+  width: min(375px, 100%);
+  text-align: left;
+  background: #fff;
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.08),
+    0 2px 8px rgba(15, 23, 42, 0.06);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.activity-page--rules {
+  margin-top: 12px;
+}
+
+.rules-top {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  padding: 12px 12px 14px;
+  background: linear-gradient(180deg, #2b2f45 0%, #1f2335 100%);
+  color: #fff;
+}
+
+.rules-back {
+  justify-self: start;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.rules-back:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.rules-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+}
+
+.rules-top__spacer {
+  width: 1px;
+  height: 1px;
+}
+
+.rules-body {
+  padding: 22px 18px 32px;
+}
+
+.rules-block {
+  margin-bottom: 22px;
+}
+
+.rules-block:last-child {
+  margin-bottom: 0;
+}
+
+.rules-h {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rules-block p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+.rules-block--muted p {
+  font-size: 12px;
+  color: #9ca3af;
+}

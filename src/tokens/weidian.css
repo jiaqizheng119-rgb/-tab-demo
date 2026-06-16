@@ -1,0 +1,67 @@
+/**
+ * 微店买家版基础样式库（Figma xsXBbcrdgX9h6n8z3wEPUs）
+ * 画幅：设计稿 750px → 实现 375px（数值 ÷2）
+ */
+
+:root {
+  /* 品牌色 */
+  --wd-brand: #ff1f50;
+  --wd-brand-soft: #fef1f3;
+  --wd-brand-disabled: #ffbccb;
+
+  /* 中性色 */
+  --wd-ink: #000000;
+  --wd-ink-secondary: #666666;
+  --wd-ink-muted: #999999;
+  --wd-ink-disabled: #c0c0c0;
+  --wd-line: #ececec;
+  --wd-surface: #f8f8f8;
+  --wd-surface-elevated: #ffffff;
+
+  /* 语义色 */
+  --wd-link: #2b7cdb;
+  --wd-link-soft: #edf4fc;
+  --wd-warn: #e59e45;
+  --wd-warn-soft: #fcf5ec;
+  --wd-success: #10c50e;
+
+  /* 布局（750→375） */
+  --wd-frame: 375px;
+  --wd-page-x: 12px; /* 左右页边距 24px */
+
+  /* 4pt 间距刻度 */
+  --wd-space-1: 4px;
+  --wd-space-2: 8px;
+  --wd-space-3: 12px;
+  --wd-space-4: 16px;
+  --wd-space-5: 20px;
+  --wd-space-6: 24px;
+  --wd-space-7: 28px;
+  --wd-space-8: 32px;
+
+  --wd-radius-xs: 4px;
+  --wd-radius-sm: 6px;
+  --wd-radius-md: 8px;
+  --wd-radius-lg: 12px;
+  --wd-radius-pill: 999px;
+
+  /* 字号（750→375） */
+  --wd-font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue',
+    sans-serif;
+  --wd-text-nav: 17px;
+  --wd-text-title: 16px;
+  --wd-text-body: 14px;
+  --wd-text-caption: 12px;
+  --wd-text-tag: 10px;
+
+  /* 组件高度 */
+  --wd-search-h: 36px;
+  --wd-chip-h: 27px;
+  --wd-btn-h: 28px;
+  --wd-btn-h-lg: 32px;
+  --wd-tabbar-h: 50px;
+  --wd-cat-size: 48px;
+
+  --wd-z-fab: 30;
+  --wd-z-tabbar: 40;
+}

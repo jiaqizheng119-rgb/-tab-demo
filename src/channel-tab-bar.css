@@ -1,0 +1,632 @@
+/**
+ * 频道标签栏（Figma VGDTRELsVcNMrLcthX9p4Q · node 199:66856）
+ * 画幅：设计稿 750px → 实现 375px（数值 ÷2）
+ */
+
+@import './tokens/weidian.css';
+
+@font-face {
+  font-family: 'vd_purple';
+  src: url('/fonts/vd_purple_heavy.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.channel-tab-bar {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  font-family: var(--wd-font);
+  color: #404040;
+}
+
+.channel-tab-bar__track {
+  display: flex;
+  align-items: flex-end;
+  gap: 6.5px;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.channel-tab-bar__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* —— Tab 基础 —— */
+
+.channel-tab-bar__tab {
+  position: relative;
+  flex: 0 0 auto;
+  height: 28px;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s ease;
+}
+
+.channel-tab-bar__tab:active {
+  transform: scale(0.96);
+}
+
+.channel-tab-bar__tab:focus-visible {
+  outline: 2px solid var(--wd-brand);
+  outline-offset: 2px;
+  border-radius: 5px;
+}
+
+.channel-tab-bar__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 25px;
+  padding: 4px 15px;
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    border-radius 0.22s ease;
+}
+
+.channel-tab-bar__label {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    color 0.22s ease,
+    font-family 0.22s ease,
+    font-weight 0.22s ease;
+}
+
+/* —— 选中气泡层 —— */
+
+.channel-tab-bar__bubble {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 28px;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+  pointer-events: none;
+}
+
+.channel-tab-bar__bubble.is-visible {
+  opacity: 1;
+}
+
+.channel-tab-bar__bubble-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 28px;
+  object-fit: fill;
+}
+
+.channel-tab-bar__bubble-stars {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 25px;
+}
+
+.channel-tab-bar__star {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.28s ease,
+    transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.channel-tab-bar__bubble.is-visible .channel-tab-bar__star--left {
+  opacity: 1;
+  transform: translateY(-50%) rotate(-15deg) scale(1);
+  transition-delay: 0.08s;
+}
+
+.channel-tab-bar__bubble.is-visible .channel-tab-bar__star--right {
+  opacity: 1;
+  transform: translateY(-50%) rotate(19deg) scale(1);
+  transition-delay: 0.16s;
+}
+
+.channel-tab-bar__star--left {
+  left: 7.5px;
+  top: 52%;
+  width: 7px;
+  height: 6.68px;
+  transform: translateY(-50%) rotate(-15deg) scale(0);
+}
+
+.channel-tab-bar__star--right {
+  right: 7.4px;
+  top: 66%;
+  width: 4.77px;
+  height: 4.77px;
+  transform: translateY(-50%) rotate(19deg) scale(0);
+}
+
+/* 方案一/二 · 选中时文本与星星上移 1px（气泡底不动） */
+.channel-tab-bar--dark .channel-tab-bar__tab.is-selected .channel-tab-bar__content,
+.channel-tab-bar--red .channel-tab-bar__tab.is-selected .channel-tab-bar__content {
+  position: relative;
+  top: -1px;
+}
+
+.channel-tab-bar--dark .channel-tab-bar__bubble.is-visible .channel-tab-bar__bubble-stars,
+.channel-tab-bar--red .channel-tab-bar__bubble.is-visible .channel-tab-bar__bubble-stars {
+  top: -1px;
+}
+
+/* —— 选中态（任意 tab） —— */
+
+.channel-tab-bar__tab.is-selected .channel-tab-bar__label {
+  font-family: 'vd_purple', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-weight: 900;
+  color: #fff;
+}
+
+/* —— 卡片标签（泰娱 / 饭圈 / 二次元 / 全部） —— */
+
+.channel-tab-bar__tab--card .channel-tab-bar__content {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.59);
+  box-shadow: 0 2px 17.9px rgba(0, 0, 0, 0.05);
+}
+
+.channel-tab-bar__tab--card.is-selected .channel-tab-bar__content {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* —— Rua娃吧 花字 —— */
+
+.channel-tab-bar__tab--logo .channel-tab-bar__content {
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.59);
+  box-shadow: 0 2px 17.9px rgba(0, 0, 0, 0.05);
+}
+
+.channel-tab-bar__tab--logo.is-selected .channel-tab-bar__content {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.channel-tab-bar__logo-img {
+  display: block;
+  width: 41.5px;
+  height: 9.4px;
+  object-fit: contain;
+  flex-shrink: 0;
+  transition: opacity 0.22s ease, filter 0.22s ease;
+}
+
+/* —— 胶囊标签 —— */
+
+.channel-tab-bar__tab--pill-light .channel-tab-bar__content {
+  border-radius: 16.5px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.channel-tab-bar__tab--pill-muted .channel-tab-bar__content {
+  padding-inline: 9.5px;
+  border-radius: 16.5px;
+  background: rgba(222, 223, 229, 0.71);
+}
+
+.channel-tab-bar__tab--pill-light.is-selected .channel-tab-bar__content,
+.channel-tab-bar__tab--pill-muted.is-selected .channel-tab-bar__content {
+  background: transparent;
+  border-radius: 5px;
+}
+
+/* 方案一/二 · bjd / 恋与深空 与卡片标签一致 */
+
+.channel-tab-bar--dark .channel-tab-bar__tab--pill-light .channel-tab-bar__content,
+.channel-tab-bar--dark .channel-tab-bar__tab--pill-muted .channel-tab-bar__content,
+.channel-tab-bar--red .channel-tab-bar__tab--pill-light .channel-tab-bar__content,
+.channel-tab-bar--red .channel-tab-bar__tab--pill-muted .channel-tab-bar__content {
+  padding: 4px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.59);
+  box-shadow: 0 2px 17.9px rgba(0, 0, 0, 0.05);
+}
+
+.channel-tab-bar--dark .channel-tab-bar__tab--pill-light.is-selected .channel-tab-bar__content,
+.channel-tab-bar--dark .channel-tab-bar__tab--pill-muted.is-selected .channel-tab-bar__content,
+.channel-tab-bar--red .channel-tab-bar__tab--pill-light.is-selected .channel-tab-bar__content,
+.channel-tab-bar--red .channel-tab-bar__tab--pill-muted.is-selected .channel-tab-bar__content {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* —— 方案三 · 胶囊选中（196:57603） —— */
+
+.channel-tab-bar--pill .channel-tab-bar__track {
+  align-items: center;
+  gap: 17.5px;
+}
+
+.channel-tab-bar--pill .channel-tab-bar__tab {
+  height: 25px;
+}
+
+.channel-tab-bar--pill .channel-tab-bar__content {
+  height: 25px;
+  padding: 4px 15px;
+  border: none;
+  border-radius: 16.5px;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+}
+
+.channel-tab-bar--pill .channel-tab-bar__tab--pill-muted .channel-tab-bar__content {
+  background: rgba(222, 223, 229, 0.71);
+}
+
+.channel-tab-bar--pill .channel-tab-bar__tab.is-selected .channel-tab-bar__content {
+  background: #ff1f50;
+  border-radius: 16.5px;
+}
+
+.channel-tab-bar--pill .channel-tab-bar__tab.is-selected .channel-tab-bar__label {
+  font-family: var(--wd-font);
+  font-weight: 400;
+  color: #fff;
+}
+
+/* —— 方案四 · 浅底红字（196:59474） —— */
+
+.channel-tab-bar--soft .channel-tab-bar__track {
+  align-items: center;
+  gap: 7.5px;
+}
+
+.channel-tab-bar--soft .channel-tab-bar__tab {
+  height: 23px;
+}
+
+.channel-tab-bar--soft .channel-tab-bar__content {
+  height: 23px;
+  padding: 3px 12px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+}
+
+.channel-tab-bar--soft .channel-tab-bar__tab--pill-muted .channel-tab-bar__content {
+  padding: 3px 12px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.channel-tab-bar--soft .channel-tab-bar__tab.is-selected .channel-tab-bar__content {
+  background: rgba(255, 31, 80, 0.21);
+  border-radius: 5px;
+}
+
+.channel-tab-bar--soft .channel-tab-bar__tab.is-selected .channel-tab-bar__label {
+  font-family: var(--wd-font);
+  font-weight: 500;
+  color: #ff1f50;
+}
+
+.channel-tab-bar--soft .channel-tab-bar__tab--logo.is-selected .channel-tab-bar__content {
+  background: rgba(255, 31, 80, 0.21);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* 方案五 + 方案四 · 暗色顶导（开售 / 小游戏）浅色系二级 Tab */
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__content {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__tab--pill-muted .channel-tab-bar__content {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__label {
+  font-family: var(--wd-font);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__tab.is-selected .channel-tab-bar__content {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.14);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark
+  .channel-tab-bar__tab.is-selected:not(.channel-tab-bar__tab--scheme5-entry)
+  .channel-tab-bar__label {
+  font-family: var(--wd-font);
+  color: #ff1f50;
+  font-weight: 500;
+  -webkit-text-fill-color: #ff1f50;
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__tab--logo .channel-tab-bar__content {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark .channel-tab-bar__tab--logo.is-selected .channel-tab-bar__content {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* 入口 Tab · vd_purple 花字（暗色顶导） */
+.channel-tab-bar--soft.channel-tab-bar--on-dark
+  .channel-tab-bar__tab--scheme5-entry
+  .channel-tab-bar__label {
+  color: rgba(255, 255, 255, 0.92);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.92);
+}
+
+.channel-tab-bar--soft.channel-tab-bar--on-dark
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+}
+
+/* —— 方案五 · 圆角胶囊 + 圆形封面（199:66792） —— */
+
+.channel-tab-bar__icon-outer {
+  display: block;
+  padding: 1.5px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.21);
+  transition: background 0.22s ease;
+}
+
+.channel-tab-bar__icon-inner {
+  display: flex;
+  align-items: center;
+  gap: 3.5px;
+  padding: 2.5px 5.5px 2.5px 2.5px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.26);
+  border: 1px solid #fff;
+  box-shadow: 0 2.5px 22px rgba(0, 0, 0, 0.05);
+  transition:
+    background 0.22s ease,
+    box-shadow 0.22s ease,
+    gap 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.channel-tab-bar__icon-cover-wrap {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  transition:
+    width 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    height 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    margin 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.channel-tab-bar__icon-cover-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 5px;
+  padding: 2px;
+  background: linear-gradient(
+    145deg,
+    #b8ecff 0%,
+    #5eb8ff 20%,
+    #9b6bff 48%,
+    #c77dff 72%,
+    #f06bff 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+.channel-tab-bar__icon-cover {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 2.5px;
+  object-fit: cover;
+}
+
+.channel-tab-bar--icon-pill {
+  overflow: visible;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__track {
+  align-items: center;
+  gap: 6.5px;
+  padding-block: 8px;
+  margin-block: -8px;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab {
+  height: auto;
+  overflow: visible;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-outer,
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-inner {
+  overflow: visible;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-outer {
+  padding: 1.2px;
+  border-radius: 999px;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-inner {
+  gap: 3.6px;
+  padding: 0.6px 12px 0.6px 0.6px;
+  border-radius: 999px;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-cover-wrap {
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-cover-wrap::after {
+  border-radius: 50%;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__icon-cover {
+  border-radius: 50%;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab--icon .channel-tab-bar__label {
+  font-size: 12px;
+  font-weight: 400;
+  color: #1c1c1c;
+  transition:
+    font-family 0.22s ease,
+    font-weight 0.22s ease,
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 选中态 */
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__icon-inner {
+  gap: 7.5px;
+  background: #fff;
+  box-shadow: 0 2.5px 11px rgba(0, 0, 0, 0.05);
+  overflow: visible;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__icon-cover-wrap {
+  z-index: 2;
+  width: 27px;
+  height: 27px;
+  margin-block: -3px;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__icon-cover-wrap::after {
+  opacity: 1;
+}
+
+.channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__label {
+  font-family: 'vd_purple', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-weight: 900;
+  color: #1c1c1c;
+  transform: scale(1.04);
+  transform-origin: left center;
+}
+
+/* 顶导方案五 · 全部 / 小游戏 / 活动 / 开售 · 统一 vd_purple */
+.channel-tab-bar__tab--scheme5-entry .channel-tab-bar__label {
+  font-family: 'vd_purple', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-weight: 900;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.channel-tab-bar:not(.channel-tab-bar--on-dark)
+  .channel-tab-bar__tab--scheme5-entry:not(.is-selected)
+  .channel-tab-bar__label {
+  color: #000;
+  -webkit-text-fill-color: #000;
+}
+
+.channel-tab-bar--dark:not(.channel-tab-bar--on-dark)
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label,
+.channel-tab-bar--red:not(.channel-tab-bar--on-dark)
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label,
+.channel-tab-bar--pill:not(.channel-tab-bar--on-dark)
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+}
+
+.channel-tab-bar--soft:not(.channel-tab-bar--on-dark)
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label {
+  color: #ff1f50;
+  -webkit-text-fill-color: #ff1f50;
+}
+
+.channel-tab-bar--icon-pill
+  .channel-tab-bar__tab--scheme5-entry.is-selected
+  .channel-tab-bar__label {
+  color: #1c1c1c;
+  -webkit-text-fill-color: #1c1c1c;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel-tab-bar__tab,
+  .channel-tab-bar__bubble,
+  .channel-tab-bar__star,
+  .channel-tab-bar__content,
+  .channel-tab-bar__label,
+  .channel-tab-bar__logo-img,
+  .channel-tab-bar__icon-outer,
+  .channel-tab-bar__icon-inner,
+  .channel-tab-bar__icon-cover-wrap,
+  .channel-tab-bar__icon-cover-wrap::after,
+  .channel-tab-bar__icon-cover {
+    transition: none;
+  }
+
+  .channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__label {
+    transform: none;
+  }
+
+  .channel-tab-bar--icon-pill .channel-tab-bar__tab--icon.is-selected .channel-tab-bar__icon-cover-wrap {
+    width: 27px;
+    height: 27px;
+    margin-block: -2px;
+  }
+
+}

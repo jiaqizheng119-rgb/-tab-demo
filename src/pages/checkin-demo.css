@@ -1,0 +1,122 @@
+.checkin-demo {
+  display: flex;
+  min-height: 100dvh;
+  font-family: var(--wd-font, system-ui, sans-serif);
+  color: #1a1a1a;
+  background: #e8eaef;
+}
+
+.checkin-demo__sidebar {
+  flex: 0 0 240px;
+  padding: 32px 24px;
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.checkin-demo__eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a778ff;
+}
+
+.checkin-demo__title {
+  margin: 0 0 28px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.checkin-demo__choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkin-demo__choice {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  color: #1a1a1a;
+  background: #fafafa;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.checkin-demo__choice:hover {
+  border-color: rgba(167, 120, 255, 0.35);
+}
+
+.checkin-demo__choice--active {
+  background: #f8f3ff;
+  border-color: #a778ff;
+  box-shadow: 0 0 0 1px rgba(167, 120, 255, 0.15);
+}
+
+.checkin-demo__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.checkin-demo__phone {
+  position: relative;
+  width: min(375px, 100%);
+  height: min(812px, calc(100dvh - 64px));
+  overflow: hidden;
+  background: #8e8e8e;
+  border-radius: 28px;
+  box-shadow:
+    0 24px 60px rgba(24, 16, 48, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.checkin-demo__phone .gh-checkin--embedded {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.checkin-demo__phone .gh-checkin--embedded .gh-checkin__backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  cursor: default;
+}
+
+.checkin-demo__phone .gh-checkin__close {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.checkin-demo__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  background: #8e8e8e;
+}
+
+.checkin-demo__empty-text {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}

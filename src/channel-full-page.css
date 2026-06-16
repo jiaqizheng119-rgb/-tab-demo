@@ -1,0 +1,1062 @@
+/**
+ * 发现页全屏 Demo（Figma 199:66825 · 方案一）
+ * 画幅：750 → 375
+ */
+
+@import './tokens/weidian.css';
+
+@font-face {
+  font-family: 'vd_purple';
+  src: url('/fonts/vd_purple_heavy.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+.cfp-shell {
+  display: flex;
+  min-height: 100dvh;
+  background: #e8eaef;
+  box-sizing: border-box;
+}
+
+.cfp-sidebar {
+  flex: 0 0 220px;
+  padding: 28px 16px;
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+}
+
+.cfp-sidebar__section + .cfp-sidebar__section {
+  margin-top: 28px;
+}
+
+.cfp-sidebar__title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #333;
+}
+
+.cfp-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 24px;
+}
+
+.cfp-layout-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.cfp-layout-toolbar__btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fafafa;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cfp-layout-toolbar__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+
+.cfp-layout-toolbar__desc {
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #888;
+}
+
+.cfp-layout-toolbar__btn.is-active {
+  background: #fff5f7;
+  border-color: #ff1f50;
+}
+
+.cfp-layout-toolbar__btn.is-active .cfp-layout-toolbar__label {
+  color: #ff1f50;
+}
+
+.cfp-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.cfp-toolbar__btn {
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cfp-toolbar__btn.is-active {
+  background: #fff5f7;
+  border-color: #ff1f50;
+  color: #ff1f50;
+}
+
+.cfp-phone {
+  width: min(375px, 100%);
+  height: min(812px, calc(100dvh - 120px));
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.14),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* —— 背景独立叠化 + 内容快速左滑，顶导固定 —— */
+
+.cfp-bg-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #121118;
+  transition: background 0.18s ease;
+}
+
+.cfp-bg-stack[data-view='discover'],
+.cfp-bg-stack[data-view='activity'] {
+  background: #f9f9f9;
+}
+
+.cfp-bg-stack[data-view='on-sale'] {
+  background: #ff1f50;
+}
+
+.cfp-bg-stack.is-morphing.cfp-bg-stack--to-dark {
+  background: #121118;
+}
+
+.cfp-bg-stack.is-morphing.cfp-bg-stack--to-on-sale {
+  background: #ff1f50;
+}
+
+.cfp-bg--on-sale {
+  background-color: #ff1f50;
+}
+
+.cfp__on-sale-bg-atmosphere,
+.cfp__on-sale-bg-gradient {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.cfp__on-sale-bg-atmosphere {
+  z-index: 1;
+  top: 3.5px;
+  height: 250px;
+  object-fit: cover;
+  object-position: top center;
+  max-width: 100%;
+}
+
+.cfp__on-sale-bg-gradient {
+  z-index: 2;
+  height: 375px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.44) 55.68%,
+    #fff 61.6%
+  );
+}
+
+.cfp-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.44s ease,
+    background 0.44s ease,
+    visibility 0s linear 0.44s;
+  will-change: opacity;
+}
+
+.cfp-bg-stack[data-view='discover'] .cfp-bg--discover,
+.cfp-bg-stack[data-view='mini-games'] .cfp-bg--mini-games,
+.cfp-bg-stack[data-view='activity'] .cfp-bg--activity,
+.cfp-bg-stack[data-view='on-sale'] .cfp-bg--on-sale {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.44s ease,
+    background 0.44s ease,
+    visibility 0s linear 0s;
+}
+
+.cfp-content-viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.cfp-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  visibility: hidden;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1),
+    visibility 0s linear 0.26s;
+  will-change: transform;
+}
+
+.cfp-panel--discover {
+  z-index: 1;
+  transform: translateX(0);
+}
+
+.cfp-panel--mini-games,
+.cfp-panel--activity,
+.cfp-panel--on-sale {
+  z-index: 2;
+  transform: translateX(100%);
+}
+
+/* 发现 < 小游戏 < 活动 < 开售：非当前页完全移出视口 */
+
+.cfp-content-viewport[data-view='discover'] .cfp-panel--discover {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1),
+    visibility 0s linear 0s;
+}
+
+.cfp-content-viewport[data-view='mini-games'] .cfp-panel--discover {
+  transform: translateX(-100%);
+}
+
+.cfp-content-viewport[data-view='mini-games'] .cfp-panel--mini-games {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1),
+    visibility 0s linear 0s;
+}
+
+.cfp-content-viewport[data-view='activity'] .cfp-panel--discover,
+.cfp-content-viewport[data-view='activity'] .cfp-panel--mini-games {
+  transform: translateX(-100%);
+}
+
+.cfp-content-viewport[data-view='activity'] .cfp-panel--activity {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1),
+    visibility 0s linear 0s;
+}
+
+.cfp-content-viewport[data-view='on-sale'] .cfp-panel--discover,
+.cfp-content-viewport[data-view='on-sale'] .cfp-panel--mini-games,
+.cfp-content-viewport[data-view='on-sale'] .cfp-panel--activity {
+  transform: translateX(-100%);
+}
+
+.cfp-content-viewport[data-view='on-sale'] .cfp-panel--on-sale {
+  transform: translateX(0);
+  visibility: visible;
+  transition:
+    transform 0.26s cubic-bezier(0.32, 0.94, 0.6, 1),
+    visibility 0s linear 0s;
+}
+
+.cfp__nav-item--btn {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.cfp__panel-body {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  box-sizing: border-box;
+  padding-top: var(--cfp-header-h);
+  padding-bottom: var(--cfp-bottom-tab-h);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.cfp__panel-body::-webkit-scrollbar {
+  display: none;
+}
+
+.cfp__panel-body--discover {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 顶导方案五：小游戏 / 活动 / 开售内容整体下移 */
+.cfp--top-scheme5 .cfp-panel--mini-games .cfp__panel-body,
+.cfp--top-scheme5 .cfp-panel--activity .cfp__panel-body,
+.cfp--top-scheme5 .cfp-panel--on-sale .cfp__panel-body {
+  padding-top: calc(var(--cfp-header-h) + 50px);
+}
+
+.cfp__feed-scroll {
+  position: absolute;
+  top: calc(var(--cfp-header-h) + var(--cfp-channel-tab-h) - 2px);
+  left: 0;
+  right: 0;
+  bottom: var(--cfp-bottom-tab-h);
+  z-index: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.cfp__feed-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 方案四：活动长图已含底栏，与活动页同样滚至底栏上方 */
+.cfp__feed-scroll--activity-content {
+  bottom: 0;
+  background: transparent;
+}
+
+.cfp__feed-scroll--activity-content .cfp__scheme4-activity {
+  padding: 0 0 var(--cfp-bottom-tab-h);
+}
+
+.cfp__scheme4-activity-header {
+  height: var(--scheme4-feed-top, 340px);
+  overflow: hidden;
+}
+
+.cfp__scheme4-activity-header-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cfp__scheme4-feed {
+  padding-top: 0;
+  background: transparent;
+}
+
+.cfp {
+  --cfp-header-h: 80px;
+  --cfp-channel-tab-h: 44px;
+  --cfp-bottom-tab-h: 180px;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: #121118;
+  font-family: var(--wd-font, -apple-system, 'PingFang SC', sans-serif);
+  color: #333;
+}
+
+.cfp__header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: transparent;
+  transition: background 0.22s ease;
+}
+
+.cfp__header > * {
+  pointer-events: auto;
+}
+
+.cfp__header--scrolled.cfp__header--mini-games {
+  background: #121118;
+}
+
+.cfp__header--scrolled.cfp__header--activity {
+  background: linear-gradient(114.6deg, #e9eaff 16.5%, #ffeaf9 44.3%);
+}
+
+.cfp__header--scrolled.cfp__header--on-sale {
+  background: #ff4f75;
+}
+
+.cfp__header--scrolled {
+  min-height: var(--cfp-header-h);
+  box-sizing: border-box;
+  padding-bottom: 2px;
+}
+
+/* —— 小游戏 / 开售 反白顶导 —— */
+
+.cfp__top--on-sale .cfp__nav-item {
+  color: #ffbcca;
+}
+
+.cfp__top--on-sale .cfp__nav-item.is-active {
+  color: #fff;
+}
+
+.cfp__top--on-sale .cfp__nav-item.is-active .cfp__nav-text {
+  color: #fff;
+}
+
+.cfp__top--dark .cfp__nav-item {
+  color: rgba(255, 255, 255, 0.61);
+}
+
+.cfp__top--dark .cfp__nav-item.is-active {
+  color: #fff;
+}
+
+.cfp__top--dark .cfp__nav-item.is-active .cfp__nav-text {
+  color: #fff;
+}
+
+/* —— 状态栏（Figma 203:100471 · 750→375） —— */
+
+.cfp__status {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 15px 0 15.25px;
+  background: transparent;
+}
+
+.cfp__time {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.56px;
+  color: #000;
+}
+
+.cfp__status--dark .cfp__time {
+  color: #fff;
+}
+
+.cfp__status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 12px;
+}
+
+.cfp__status-cellular {
+  display: block;
+  width: 17px;
+  height: 11px;
+}
+
+.cfp__status-wifi {
+  display: block;
+  width: 15px;
+  height: 11px;
+}
+
+.cfp__status-battery {
+  display: flex;
+  align-items: center;
+  height: 12px;
+}
+
+.cfp__status-battery-body {
+  position: relative;
+  box-sizing: border-box;
+  width: 22px;
+  height: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 2px;
+}
+
+.cfp__status--dark .cfp__status-battery-body {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.cfp__status-battery-fill {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 8px;
+  border-radius: 2px;
+  background: #000;
+}
+
+.cfp__status--dark .cfp__status-battery-fill {
+  background: #fff;
+}
+
+.cfp__status-battery-cap {
+  display: block;
+  width: 1.5px;
+  height: 4px;
+  flex-shrink: 0;
+}
+
+/* —— 顶部导航（Figma 203:93219 / 199:66831 · 750→375） —— */
+
+.cfp__top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 0 9px 10px;
+  min-height: 24px;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+/* 方案三 · 顶导（Figma 210:95463 · 750→375） */
+.cfp__top--scheme3 .cfp__nav--scheme3 {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cfp__nav-pill {
+  --cfp-nav-pill-bg-offset: -7px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -1px;
+  padding: 2.5px 10px 3px 7px;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.cfp__nav-pill::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--cfp-nav-pill-bg-offset);
+  bottom: 0;
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(255, 255, 255, 0.52) 42%,
+    rgba(255, 255, 255, 0.14) 78%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: 0 2px 17.9px rgba(0, 0, 0, 0.04);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cfp__nav-pill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--cfp-nav-pill-bg-offset);
+  bottom: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.42) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cfp__nav-pill-item,
+.cfp__nav-pill-item--btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+  font: inherit;
+  color: inherit;
+}
+
+.cfp__nav-pill-item--btn {
+  cursor: pointer;
+}
+
+.cfp__nav-pill-text {
+  font-family: 'vd_purple', 'Alibaba PuHuiTi', 'PingFang SC', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1;
+  white-space: nowrap;
+  background: linear-gradient(180deg, #0b0b10 0%, #cdaaff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.cfp__nav-underline--pill {
+  width: 28px;
+  height: 8px;
+  margin-top: 1px;
+}
+
+.cfp__top--dark .cfp__nav-pill::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 42%,
+    rgba(255, 255, 255, 0.03) 78%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: none;
+}
+
+.cfp__top--dark .cfp__nav-pill::before {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.12) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.cfp__top--dark .cfp__nav-pill-text,
+.cfp__top--on-sale .cfp__nav-pill-text {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #fff;
+  color: #fff;
+}
+
+.cfp__top--on-sale .cfp__nav-pill::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.34) 0%,
+    rgba(255, 255, 255, 0.18) 42%,
+    rgba(255, 255, 255, 0.05) 78%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: none;
+}
+
+.cfp__top--on-sale .cfp__nav-pill::before {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.2) 48%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* 方案五：顶导文案居中（菜单与搜索之间） */
+.cfp__top--scheme5 .cfp__nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 10px;
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.cfp__top--scheme5 .cfp__nav-item,
+.cfp__top--scheme5 .cfp__nav-item--btn {
+  pointer-events: auto;
+}
+
+.cfp__top--scheme5 .cfp__menu {
+  position: relative;
+  z-index: 1;
+}
+
+.cfp__top--scheme5 .cfp__search {
+  margin-left: auto;
+  z-index: 1;
+}
+
+.cfp__menu {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 23px;
+  margin-top: -2.5px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.cfp__menu-img {
+  display: block;
+  width: 23px;
+  height: 23px;
+  object-fit: contain;
+}
+
+.cfp__nav {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px; /* 稿面 24px ÷2 */
+  margin-left: 18.5px;
+  margin-right: 8px;
+  min-height: 24px;
+  overflow: visible;
+}
+
+.cfp__nav-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  color: rgba(102, 102, 102, 0.7);
+  white-space: nowrap;
+}
+
+.cfp__nav-text {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  transition:
+    color 0.28s ease,
+    font-weight 0.28s ease;
+}
+
+.cfp__nav-item.is-active {
+  color: #000;
+}
+
+.cfp__nav-item.is-active .cfp__nav-text {
+  font-weight: 600;
+}
+
+.cfp__nav-item--activity {
+  margin-top: -1px;
+  padding-top: 1px;
+  height: auto;
+  min-height: 17px;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+.cfp__nav-activity-wrap {
+  position: relative;
+  display: block;
+  line-height: 0;
+}
+
+.cfp__nav-activity-accent {
+  position: absolute;
+  pointer-events: none;
+}
+
+.cfp__nav-activity-accent--idle {
+  left: 0.82px;
+  top: 9.78px;
+  width: 4.6px;
+  height: 6.81px;
+}
+
+.cfp__nav-activity-accent--active {
+  left: 0.82px;
+  top: 9.78px;
+  width: 4.6px;
+  height: 6.81px;
+}
+
+.cfp__nav-underline {
+  display: block;
+  width: 35px;
+  height: 9.5px;
+  margin-top: 1.5px;
+  object-fit: contain;
+  transition: opacity 0.28s ease;
+}
+
+.cfp__nav-underline.is-hidden {
+  opacity: 0;
+}
+
+.cfp__nav-underline.is-visible {
+  opacity: 1;
+}
+
+.cfp__nav-activity-img {
+  display: block;
+  width: 33.5px;
+  height: auto;
+  object-fit: contain;
+}
+
+.cfp__nav-underline--activity {
+  width: 35px;
+  margin-top: 3px;
+}
+
+.cfp__search {
+  flex-shrink: 0;
+  position: relative;
+  width: 21px;
+  height: 21px;
+  margin-top: -5px;
+  margin-left: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.cfp__search-img {
+  position: absolute;
+  top: 8.75%;
+  right: 6.93%;
+  bottom: 6.67%;
+  left: 8.75%;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* —— 频道标签（发现页固定于顶导下方） —— */
+
+.cfp__channels {
+  position: absolute;
+  top: var(--cfp-header-h);
+  left: 0;
+  right: 0;
+  z-index: 11;
+  padding: 4px 9px 12px;
+  margin-top: 0;
+  overflow: visible;
+  background: transparent;
+  transition: background 0.22s ease;
+  pointer-events: none;
+}
+
+.cfp__channels > * {
+  pointer-events: auto;
+}
+
+.cfp__channels--scrolled {
+  top: calc(var(--cfp-header-h) - 2px);
+  z-index: 12;
+  padding-top: 6px;
+  box-sizing: border-box;
+}
+
+.cfp__channels .channel-tab-bar {
+  width: 100%;
+  overflow: visible;
+}
+
+/* —— Feed 瀑布流 —— */
+
+.cfp__feed {
+  padding: 4px 9px 24px;
+  animation: cfp-fade-up 0.4s ease both;
+}
+
+@keyframes cfp-fade-up {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cfg {
+  column-count: 2;
+  column-gap: 9px;
+}
+
+.cfg-card {
+  break-inside: avoid;
+  margin-bottom: 9px;
+  padding-bottom: 10px;
+  background: #fff;
+  border-radius: 9px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
+.cfg-card__media {
+  overflow: hidden;
+  border-radius: 9px 9px 0 0;
+}
+
+.cfg-card--s .cfg-card__media { height: 140px; }
+.cfg-card--m .cfg-card__media { height: 175px; }
+.cfg-card--l .cfg-card__media { height: 220px; }
+
+.cfg-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s ease;
+}
+
+.cfg-card:hover .cfg-card__img {
+  transform: scale(1.03);
+}
+
+.cfg-card__tag {
+  display: inline-block;
+  margin: 8px 6px 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #e59e45;
+  background: #fcf5ec;
+  border-radius: 3px;
+}
+
+.cfg-card__title {
+  margin: 8px 6px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #333;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cfg-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+
+.cfg-card__avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cfg-card__author {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cfg-card__views {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.cfg-card__eye {
+  width: 12px;
+  height: 12px;
+  color: #999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cfp__bg,
+  .cfp__feed,
+  .cfg-card__img {
+    animation: none;
+    transition: none;
+  }
+
+  .cfp-bg {
+    transition: none;
+    filter: none !important;
+  }
+
+  .cfp-panel {
+    transition: none;
+  }
+
+  .cfp-content-viewport[data-view='mini-games'] .cfp-panel--discover,
+  .cfp-content-viewport[data-view='activity'] .cfp-panel--discover,
+  .cfp-content-viewport[data-view='activity'] .cfp-panel--mini-games,
+  .cfp-content-viewport[data-view='on-sale'] .cfp-panel--discover,
+  .cfp-content-viewport[data-view='on-sale'] .cfp-panel--mini-games,
+  .cfp-content-viewport[data-view='on-sale'] .cfp-panel--activity {
+    transform: translateX(-100%);
+  }
+}

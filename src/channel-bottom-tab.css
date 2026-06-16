@@ -1,0 +1,16 @@
+/* 底部 Tab（Figma 203:115517 · 750×360 → 375×180） */
+
+.cfp-bottom-tab {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.cfp-bottom-tab__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
