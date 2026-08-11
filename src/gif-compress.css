@@ -110,6 +110,47 @@
   color: var(--gc-accent-text);
 }
 
+.gif-compress__subtools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 14px;
+  padding: 12px 0 14px;
+  border-bottom: 1px dashed var(--gc-line);
+}
+
+.gif-compress__subtool {
+  appearance: none;
+  border: 1px solid var(--gc-accent-border);
+  background: #fff;
+  color: var(--gc-accent-text);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.gif-compress__subtool:hover {
+  background: var(--gc-accent-soft);
+}
+
+.gif-compress__subtool--active {
+  background: #d7eaf8;
+  border-color: var(--gc-accent);
+}
+
+.gif-compress__sublead {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gc-muted);
+}
+
 .gif-compress__drop {
   display: flex;
   flex-direction: column;

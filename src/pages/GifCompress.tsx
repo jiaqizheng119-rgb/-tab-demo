@@ -3,12 +3,11 @@ import gifsicle from 'gifsicle-wasm-browser'
 import { gifToMov, gifToMp4, videoToGif } from '../lib/ffmpegClient'
 import '../gif-compress.css'
 
-type ToolId =
-  | 'compress'
-  | 'mov-to-gif'
-  | 'mp4-to-gif'
-  | 'gif-to-mp4'
-  | 'gif-to-mov'
+type MainTab = 'compress' | 'convert'
+
+type ConvertId = 'mov-to-gif' | 'mp4-to-gif' | 'gif-to-mp4' | 'gif-to-mov'
+
+type ToolId = 'compress' | ConvertId
 
 type PresetId = 'recommended' | 'smaller' | 'custom'
 
@@ -19,22 +18,23 @@ type MediaMeta = {
   kind: 'image' | 'video'
 }
 
-const TOOLS: Array<{
-  id: ToolId
+const COMPRESS_TOOL = {
+  id: 'compress' as const,
+  label: 'GIF 压缩',
+  accept: 'image/gif,.gif',
+  dropHint: '拖拽 GIF 到这里',
+  actionLabel: '开始压缩',
+  lead: '保持尺寸、帧数、调色板不变；用 gifsicle 轻度 lossy 压体积。文件只在本地处理，不会上传。',
+}
+
+const CONVERT_TOOLS: Array<{
+  id: ConvertId
   label: string
   accept: string
   dropHint: string
   actionLabel: string
   lead: string
 }> = [
-  {
-    id: 'compress',
-    label: 'GIF 压缩',
-    accept: 'image/gif,.gif',
-    dropHint: '拖拽 GIF 到这里',
-    actionLabel: '开始压缩',
-    lead: '保持尺寸、帧数、调色板不变；用 gifsicle 轻度 lossy 压体积。文件只在本地处理，不会上传。',
-  },
   {
     id: 'mov-to-gif',
     label: 'MOV→GIF',
@@ -68,6 +68,9 @@ const TOOLS: Array<{
     lead: '把 GIF 转成高画质 MOV（H.264），只做格式转换，不主动压体积。',
   },
 ]
+
+const CONVERT_LEAD =
+  '选择下方转换方式。格式转换默认保画质，不主动压缩；文件只在本地处理。'
 
 const PRESETS: Record<
   Exclude<PresetId, 'custom'>,
@@ -164,8 +167,14 @@ export default function GifCompress() {
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [tool, setTool] = useState<ToolId>('compress')
-  const activeTool = TOOLS.find((t) => t.id === tool) ?? TOOLS[0]
+  const [mainTab, setMainTab] = useState<MainTab>('compress')
+  const [convertId, setConvertId] = useState<ConvertId>('mov-to-gif')
+  const tool: ToolId = mainTab === 'compress' ? 'compress' : convertId
+  const activeTool =
+    tool === 'compress'
+      ? COMPRESS_TOOL
+      : (CONVERT_TOOLS.find((t) => t.id === convertId) ?? CONVERT_TOOLS[0])
+  const pageLead = mainTab === 'compress' ? COMPRESS_TOOL.lead : activeTool.lead
 
   const [preset, setPreset] = useState<PresetId>('recommended')
   const [lossy, setLossy] = useState(PRESETS.recommended.lossy)
@@ -226,11 +235,22 @@ export default function GifCompress() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  function switchTool(next: ToolId) {
-    setTool(next)
+  function switchMainTab(next: MainTab) {
+    setMainTab(next)
     clearMedia()
     setKeepQuality(true)
-    setStatus('选择功能后拖入文件，全程在本地浏览器完成。')
+    setStatus(
+      next === 'compress'
+        ? '拖入 GIF 后即可压缩，全程在本地浏览器完成。'
+        : '选择转换方式后拖入文件，全程在本地浏览器完成。',
+    )
+  }
+
+  function switchConvert(next: ConvertId) {
+    setConvertId(next)
+    clearMedia()
+    setKeepQuality(true)
+    setStatus('选择转换方式后拖入文件，全程在本地浏览器完成。')
   }
 
   function applyPreset(next: PresetId) {
@@ -413,26 +433,63 @@ export default function GifCompress() {
         <header className="gif-compress__header">
           <p className="gif-compress__eyebrow">Local tool</p>
           <h1 className="gif-compress__title">gif压缩工具</h1>
-          <p className="gif-compress__lead">{activeTool.lead}</p>
+          <p className="gif-compress__lead">
+            {mainTab === 'convert' ? CONVERT_LEAD : pageLead}
+          </p>
         </header>
 
         <section className="gif-compress__panel">
           <div className="gif-compress__tools" role="tablist" aria-label="功能">
-            {TOOLS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                role="tab"
-                aria-selected={tool === item.id}
-                className={`gif-compress__tool${
-                  tool === item.id ? ' gif-compress__tool--active' : ''
-                }`}
-                onClick={() => switchTool(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mainTab === 'compress'}
+              className={`gif-compress__tool${
+                mainTab === 'compress' ? ' gif-compress__tool--active' : ''
+              }`}
+              onClick={() => switchMainTab('compress')}
+            >
+              GIF 压缩
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mainTab === 'convert'}
+              className={`gif-compress__tool${
+                mainTab === 'convert' ? ' gif-compress__tool--active' : ''
+              }`}
+              onClick={() => switchMainTab('convert')}
+            >
+              转格式
+            </button>
           </div>
+
+          {mainTab === 'convert' ? (
+            <div
+              className="gif-compress__subtools"
+              role="tablist"
+              aria-label="转换方式"
+            >
+              {CONVERT_TOOLS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={convertId === item.id}
+                  className={`gif-compress__subtool${
+                    convertId === item.id ? ' gif-compress__subtool--active' : ''
+                  }`}
+                  onClick={() => switchConvert(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {mainTab === 'convert' ? (
+            <p className="gif-compress__sublead">{activeTool.lead}</p>
+          ) : null}
 
           <label
             className={`gif-compress__drop${dragOver ? ' gif-compress__drop--active' : ''}`}
