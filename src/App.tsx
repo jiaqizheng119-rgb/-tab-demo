@@ -3,6 +3,7 @@ import GuildHome from './pages/GuildHome'
 import CheckinDemo from './pages/CheckinDemo'
 import ChannelDemo from './pages/ChannelDemo'
 import ChannelFullPage from './pages/ChannelFullPage'
+import GifCompress from './pages/GifCompress'
 import './App.css'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/channel-mini-games" element={<ChannelFullPage />} />
         <Route path="/channel-activity" element={<ChannelFullPage />} />
         <Route path="/channel-on-sale" element={<ChannelFullPage />} />
+        <Route path="/gif-compress" element={<GifCompress />} />
       </Routes>
     </BrowserRouter>
   )
