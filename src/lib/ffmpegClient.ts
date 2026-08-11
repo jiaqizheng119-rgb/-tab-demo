@@ -99,12 +99,14 @@ async function runConvert(options: {
   return file
 }
 
-/** Video (mp4/mov) → GIF */
+/** Video (mp4/mov) → GIF（默认保画质，不主动缩小/抽帧） */
 export async function videoToGif(
   input: File,
   options: {
-    fps: number
-    maxWidth: number
+    /** null = 保留全部帧，不抽帧 */
+    fps: number | null
+    /** null = 保持原始宽度 */
+    maxWidth: number | null
     onProgress?: FfmpegProgressHandler
     onStatus?: (message: string) => void
   },
@@ -112,7 +114,22 @@ export async function videoToGif(
   const ext = input.name.toLowerCase().endsWith('.mov') ? 'mov' : 'mp4'
   const inputName = `input.${ext}`
   const outputName = 'output.gif'
-  const vf = `fps=${options.fps},scale='min(${options.maxWidth},iw)':-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`
+
+  const parts: string[] = []
+  if (options.fps != null) {
+    parts.push(`fps=${options.fps}`)
+  }
+  if (options.maxWidth != null) {
+    parts.push(
+      `scale='min(${options.maxWidth},iw)':-1:flags=lanczos`,
+    )
+  } else {
+    parts.push('scale=iw:-1:flags=lanczos')
+  }
+  parts.push(
+    'split[s0][s1];[s0]palettegen=max_colors=256:stats_mode=full[p];[s1][p]paletteuse=dither=sierra2_4a',
+  )
+  const vf = parts.join(',')
 
   return runConvert({
     input,
@@ -125,7 +142,20 @@ export async function videoToGif(
   })
 }
 
-/** GIF → MP4 */
+const HIGH_QUALITY_VIDEO_ARGS = [
+  '-vf',
+  'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+  '-c:v',
+  'libx264',
+  '-preset',
+  'slow',
+  '-crf',
+  '15',
+  '-pix_fmt',
+  'yuv420p',
+] as const
+
+/** GIF → MP4（高码率保画质，不做额外压缩） */
 export async function gifToMp4(
   input: File,
   options?: {
@@ -145,12 +175,7 @@ export async function gifToMp4(
     args: [
       '-i',
       inputName,
-      '-vf',
-      'scale=trunc(iw/2)*2:trunc(ih/2)*2',
-      '-c:v',
-      'libx264',
-      '-pix_fmt',
-      'yuv420p',
+      ...HIGH_QUALITY_VIDEO_ARGS,
       '-movflags',
       '+faststart',
       outputName,
@@ -158,7 +183,7 @@ export async function gifToMp4(
   })
 }
 
-/** GIF → MOV */
+/** GIF → MOV（高码率保画质，不做额外压缩） */
 export async function gifToMov(
   input: File,
   options?: {
@@ -178,15 +203,11 @@ export async function gifToMov(
     args: [
       '-i',
       inputName,
-      '-vf',
-      'scale=trunc(iw/2)*2:trunc(ih/2)*2',
-      '-c:v',
-      'libx264',
-      '-pix_fmt',
-      'yuv420p',
+      ...HIGH_QUALITY_VIDEO_ARGS,
       '-f',
       'mov',
       outputName,
     ],
   })
 }
+

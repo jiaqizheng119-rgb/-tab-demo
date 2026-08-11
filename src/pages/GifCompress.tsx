@@ -41,7 +41,7 @@ const TOOLS: Array<{
     accept: 'video/quicktime,.mov,video/mp4',
     dropHint: '拖拽 MOV 到这里',
     actionLabel: '开始转换',
-    lead: '把 MOV 转成 GIF，全程本地转换。可调帧率和最大宽度以控制体积。',
+    lead: '把 MOV 转成 GIF，默认保持原尺寸与全部帧，只做格式转换，不主动压缩。',
   },
   {
     id: 'mp4-to-gif',
@@ -49,7 +49,7 @@ const TOOLS: Array<{
     accept: 'video/mp4,.mp4,video/*',
     dropHint: '拖拽 MP4 到这里',
     actionLabel: '开始转换',
-    lead: '把 MP4 转成 GIF，全程本地转换。可调帧率和最大宽度以控制体积。',
+    lead: '把 MP4 转成 GIF，默认保持原尺寸与全部帧，只做格式转换，不主动压缩。',
   },
   {
     id: 'gif-to-mp4',
@@ -57,7 +57,7 @@ const TOOLS: Array<{
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始转换',
-    lead: '把 GIF 转成 MP4（H.264），更适合分享与播放，全程本地处理。',
+    lead: '把 GIF 转成高画质 MP4（H.264），只做格式转换，不主动压体积。',
   },
   {
     id: 'gif-to-mov',
@@ -65,7 +65,7 @@ const TOOLS: Array<{
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始转换',
-    lead: '把 GIF 转成 MOV（H.264），适合 Apple 生态使用，全程本地处理。',
+    lead: '把 GIF 转成高画质 MOV（H.264），只做格式转换，不主动压体积。',
   },
 ]
 
@@ -169,8 +169,9 @@ export default function GifCompress() {
 
   const [preset, setPreset] = useState<PresetId>('recommended')
   const [lossy, setLossy] = useState(PRESETS.recommended.lossy)
-  const [fps, setFps] = useState(12)
-  const [maxWidth, setMaxWidth] = useState(720)
+  const [keepQuality, setKeepQuality] = useState(true)
+  const [fps, setFps] = useState(15)
+  const [maxWidth, setMaxWidth] = useState(1080)
   const [progress, setProgress] = useState(0)
 
   const [source, setSource] = useState<MediaMeta | null>(null)
@@ -228,6 +229,7 @@ export default function GifCompress() {
   function switchTool(next: ToolId) {
     setTool(next)
     clearMedia()
+    setKeepQuality(true)
     setStatus('选择功能后拖入文件，全程在本地浏览器完成。')
   }
 
@@ -292,8 +294,8 @@ export default function GifCompress() {
 
     if (tool === 'mov-to-gif' || tool === 'mp4-to-gif') {
       const out = await videoToGif(source.file, {
-        fps,
-        maxWidth,
+        fps: keepQuality ? null : fps,
+        maxWidth: keepQuality ? null : maxWidth,
         ...common,
       })
       return new File([out], `${baseName(source.file.name)}.gif`, {
@@ -397,8 +399,10 @@ export default function GifCompress() {
   const activeHint =
     tool !== 'compress'
       ? isVideoToGif
-        ? `当前设置：${fps} fps，最大宽度 ${maxWidth}px。数值越高越清晰，体积也更大。`
-        : '转换使用浏览器内 ffmpeg，首次加载引擎约 30MB，之后会更快。'
+        ? keepQuality
+          ? '当前为原画质转换：保留原始尺寸与全部帧，不主动压缩体积。'
+          : `自定义参数：${fps} fps，最大宽度 ${maxWidth}px（仅在需要时使用）。`
+        : '格式转换默认高画质输出；体积变大/变小取决于格式本身，不是刻意压缩。'
       : preset === 'custom'
         ? `自定义 lossy=${lossy}：数值越大体积越小，噪点可能更明显（建议 20–60）。`
         : PRESETS[preset].hint
@@ -526,38 +530,66 @@ export default function GifCompress() {
 
             {isVideoToGif ? (
               <>
-                <div className="gif-compress__slider-row">
-                  <div className="gif-compress__slider-meta">
-                    <span>帧率 (fps)</span>
-                    <strong>{fps}</strong>
+                <div>
+                  <span className="gif-compress__label">转换质量</span>
+                  <div className="gif-compress__presets" role="group" aria-label="转换质量">
+                    <button
+                      type="button"
+                      className={`gif-compress__preset${
+                        keepQuality ? ' gif-compress__preset--active' : ''
+                      }`}
+                      onClick={() => setKeepQuality(true)}
+                    >
+                      原画质（推荐）
+                    </button>
+                    <button
+                      type="button"
+                      className={`gif-compress__preset${
+                        !keepQuality ? ' gif-compress__preset--active' : ''
+                      }`}
+                      onClick={() => setKeepQuality(false)}
+                    >
+                      自定义参数
+                    </button>
                   </div>
-                  <input
-                    className="gif-compress__slider"
-                    type="range"
-                    min={6}
-                    max={20}
-                    step={1}
-                    value={fps}
-                    onChange={(e) => setFps(Number(e.target.value))}
-                    aria-label="帧率"
-                  />
                 </div>
-                <div className="gif-compress__slider-row">
-                  <div className="gif-compress__slider-meta">
-                    <span>最大宽度 (px)</span>
-                    <strong>{maxWidth}</strong>
-                  </div>
-                  <input
-                    className="gif-compress__slider"
-                    type="range"
-                    min={240}
-                    max={1080}
-                    step={40}
-                    value={maxWidth}
-                    onChange={(e) => setMaxWidth(Number(e.target.value))}
-                    aria-label="最大宽度"
-                  />
-                </div>
+
+                {!keepQuality ? (
+                  <>
+                    <div className="gif-compress__slider-row">
+                      <div className="gif-compress__slider-meta">
+                        <span>帧率 (fps)</span>
+                        <strong>{fps}</strong>
+                      </div>
+                      <input
+                        className="gif-compress__slider"
+                        type="range"
+                        min={6}
+                        max={30}
+                        step={1}
+                        value={fps}
+                        onChange={(e) => setFps(Number(e.target.value))}
+                        aria-label="帧率"
+                      />
+                    </div>
+                    <div className="gif-compress__slider-row">
+                      <div className="gif-compress__slider-meta">
+                        <span>最大宽度 (px)</span>
+                        <strong>{maxWidth}</strong>
+                      </div>
+                      <input
+                        className="gif-compress__slider"
+                        type="range"
+                        min={240}
+                        max={1920}
+                        step={40}
+                        value={maxWidth}
+                        onChange={(e) => setMaxWidth(Number(e.target.value))}
+                        aria-label="最大宽度"
+                      />
+                    </div>
+                  </>
+                ) : null}
               </>
             ) : null}
 
