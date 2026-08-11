@@ -151,6 +151,47 @@
   color: var(--gc-muted);
 }
 
+.gif-compress__field-row {
+  display: grid;
+  gap: 8px;
+}
+
+.gif-compress__number-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 240px;
+}
+
+.gif-compress__number {
+  width: 100%;
+  border: 1px solid var(--gc-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--gc-ink);
+  background: #fff;
+}
+
+.gif-compress__number:focus {
+  outline: none;
+  border-color: var(--gc-accent);
+  box-shadow: 0 0 0 3px rgba(126, 182, 232, 0.2);
+}
+
+.gif-compress__number-wrap span {
+  font-size: 13px;
+  color: var(--gc-muted);
+}
+
+.gif-compress__field-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--gc-muted);
+}
+
 .gif-compress__drop {
   display: flex;
   flex-direction: column;

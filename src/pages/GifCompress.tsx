@@ -43,7 +43,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始压缩',
-    lead: '保持尺寸、帧数、调色板不变；用 gifsicle 轻度 lossy 压体积。',
+    lead: '默认保持尺寸、帧数、颜色不变，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
   },
   {
     id: 'compress-mp4',
@@ -51,7 +51,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'video/mp4,.mp4',
     dropHint: '拖拽 MP4 到这里',
     actionLabel: '开始压缩',
-    lead: '压缩 MP4 体积，尽量保持观感；可调画质档位。',
+    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
   },
   {
     id: 'compress-mov',
@@ -59,7 +59,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'video/quicktime,.mov',
     dropHint: '拖拽 MOV 到这里',
     actionLabel: '开始压缩',
-    lead: '压缩 MOV 体积，尽量保持观感；可调画质档位。',
+    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
   },
 ]
 
@@ -126,7 +126,7 @@ const CLARITY_TOOLS: Array<ToolConfig & { id: `clarity-${ClarityId}` }> = [
 ]
 
 const MAIN_LEADS: Record<MainTab, string> = {
-  compress: '选择下方格式进行压缩。文件只在本地处理，不会上传。',
+  compress: '选择下方格式压缩。默认尽量保持尺寸、帧数、颜色与流畅清晰度；文件只在本地处理。',
   convert: '选择下方转换方式。默认保画质，不主动压缩；文件只在本地处理。',
   clarity:
     '选择下方格式增强清晰度（锐化）。尺寸不变；文件只在本地处理。',
@@ -139,7 +139,7 @@ const GIF_PRESETS: Record<
   recommended: {
     label: '推荐画质',
     lossy: 20,
-    hint: '尺寸/帧数/颜色不变，体积通常可明显下降。',
+    hint: '尺寸/帧数/颜色不变，尽量保清晰流畅，体积通常可明显下降。',
   },
   smaller: {
     label: '更小体积',
@@ -154,13 +154,13 @@ const VIDEO_PRESETS: Record<
 > = {
   recommended: {
     label: '推荐画质',
-    crf: 23,
-    hint: '体积与画质较均衡，适合大多数场景。',
+    crf: 20,
+    hint: '不改尺寸、不抽帧，尽量保清晰流畅；体积与画质较均衡。',
   },
   smaller: {
     label: '更小体积',
-    crf: 28,
-    hint: '体积更小，画质略降，适合分享传输。',
+    crf: 26,
+    hint: '不改尺寸、不抽帧；体积更小，画质略降。',
   },
 }
 
@@ -180,9 +180,12 @@ function buildGifCompressCommand(
   inputName: string,
   lossy: number,
   bytes: number,
+  maxWidth: number | null,
 ): string {
   const optimize = bytes >= 8 * 1024 * 1024 ? '-O1' : '-O3'
-  return `${optimize} --lossy=${lossy} ${inputName} -o /out/out.gif`
+  const resize =
+    maxWidth != null && maxWidth > 0 ? ` --resize-width ${Math.round(maxWidth)}` : ''
+  return `${optimize} --lossy=${lossy}${resize} ${inputName} -o /out/out.gif`
 }
 
 function baseName(filename: string): string {
@@ -283,6 +286,7 @@ export default function GifCompress() {
   const [lossy, setLossy] = useState(GIF_PRESETS.recommended.lossy)
   const [videoPreset, setVideoPreset] = useState<VideoPresetId>('recommended')
   const [crf, setCrf] = useState(VIDEO_PRESETS.recommended.crf)
+  const [customWidth, setCustomWidth] = useState<number | ''>('')
   const [keepQuality, setKeepQuality] = useState(true)
   const [fps, setFps] = useState(15)
   const [maxWidth, setMaxWidth] = useState(1080)
@@ -349,7 +353,17 @@ export default function GifCompress() {
   function switchCompress(next: CompressId) {
     setCompressId(next)
     clearMedia()
+    setCustomWidth('')
+    setGifPreset('recommended')
+    setLossy(GIF_PRESETS.recommended.lossy)
+    setVideoPreset('recommended')
+    setCrf(VIDEO_PRESETS.recommended.crf)
     setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
+  }
+
+  function resolvedCustomWidth(): number | null {
+    if (customWidth === '' || Number(customWidth) <= 0) return null
+    return Math.min(4096, Math.max(1, Math.round(Number(customWidth))))
   }
 
   function switchConvert(next: ConvertId) {
@@ -427,9 +441,13 @@ export default function GifCompress() {
 
     if (tool === 'compress-gif') {
       const inputName = 'input.gif'
+      const width =
+        gifPreset === 'custom' ? resolvedCustomWidth() : null
       const files = await gifsicle.run({
         input: [{ file: source.file, name: inputName }],
-        command: [buildGifCompressCommand(inputName, lossy, source.bytes)],
+        command: [
+          buildGifCompressCommand(inputName, lossy, source.bytes, width),
+        ],
       })
       const out = files?.[0]
       if (!out) throw new Error('压缩失败，未得到输出文件。')
@@ -440,7 +458,14 @@ export default function GifCompress() {
 
     if (tool === 'compress-mp4' || tool === 'compress-mov') {
       const format = tool === 'compress-mov' ? 'mov' : 'mp4'
-      const out = await compressVideo(source.file, { format, crf, ...common })
+      const width =
+        videoPreset === 'custom' ? resolvedCustomWidth() : null
+      const out = await compressVideo(source.file, {
+        format,
+        crf,
+        maxWidth: width,
+        ...common,
+      })
       return new File([out], `${baseName(source.file.name)}-compressed.${format}`, {
         type: out.type,
       })
@@ -581,13 +606,25 @@ export default function GifCompress() {
         : `自定义参数：${fps} fps，最大宽度 ${maxWidth}px。`
     }
     if (isGifCompress) {
+      const widthHint =
+        gifPreset === 'custom' && resolvedCustomWidth()
+          ? `，宽度 ${resolvedCustomWidth()}px`
+          : gifPreset === 'custom'
+            ? '，宽度保持原尺寸'
+            : ''
       return gifPreset === 'custom'
-        ? `自定义 lossy=${lossy}（建议 20–60）。`
+        ? `自定义 lossy=${lossy}${widthHint}。默认仍尽量保帧数与颜色。`
         : GIF_PRESETS[gifPreset].hint
     }
     if (isVideoCompress) {
+      const widthHint =
+        videoPreset === 'custom' && resolvedCustomWidth()
+          ? `，宽度 ${resolvedCustomWidth()}px`
+          : videoPreset === 'custom'
+            ? '，宽度保持原尺寸'
+            : ''
       return videoPreset === 'custom'
-        ? `自定义 CRF=${crf}（数值越大体积越小，建议 20–30）。`
+        ? `自定义 CRF=${crf}${widthHint}。不抽帧，尽量保流畅。`
         : VIDEO_PRESETS[videoPreset].hint
     }
     return '格式转换默认高画质输出；体积变化取决于格式本身。'
@@ -755,6 +792,33 @@ export default function GifCompress() {
                     onChange={(e) => onLossyChange(Number(e.target.value))}
                   />
                 </div>
+                {gifPreset === 'custom' ? (
+                  <div className="gif-compress__field-row">
+                    <label className="gif-compress__label" htmlFor={`${inputId}-gif-w`}>
+                      调整尺寸宽度 (px)
+                    </label>
+                    <div className="gif-compress__number-wrap">
+                      <input
+                        id={`${inputId}-gif-w`}
+                        className="gif-compress__number"
+                        type="number"
+                        min={1}
+                        max={4096}
+                        step={1}
+                        placeholder="留空=原尺寸"
+                        value={customWidth}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setCustomWidth(v === '' ? '' : Number(v))
+                        }}
+                      />
+                      <span>px</span>
+                    </div>
+                    <p className="gif-compress__field-hint">
+                      留空则保持原尺寸；填写后按宽度等比缩放，帧数/颜色尽量不变。
+                    </p>
+                  </div>
+                ) : null}
               </>
             ) : null}
 
@@ -798,12 +862,39 @@ export default function GifCompress() {
                   <input
                     className="gif-compress__slider"
                     type="range"
-                    min={18}
+                    min={16}
                     max={35}
                     value={crf}
                     onChange={(e) => onCrfChange(Number(e.target.value))}
                   />
                 </div>
+                {videoPreset === 'custom' ? (
+                  <div className="gif-compress__field-row">
+                    <label className="gif-compress__label" htmlFor={`${inputId}-vid-w`}>
+                      调整尺寸宽度 (px)
+                    </label>
+                    <div className="gif-compress__number-wrap">
+                      <input
+                        id={`${inputId}-vid-w`}
+                        className="gif-compress__number"
+                        type="number"
+                        min={1}
+                        max={4096}
+                        step={1}
+                        placeholder="留空=原尺寸"
+                        value={customWidth}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setCustomWidth(v === '' ? '' : Number(v))
+                        }}
+                      />
+                      <span>px</span>
+                    </div>
+                    <p className="gif-compress__field-hint">
+                      留空则保持原尺寸与全部帧；填写后按宽度等比缩放，不抽帧。
+                    </p>
+                  </div>
+                ) : null}
               </>
             ) : null}
 

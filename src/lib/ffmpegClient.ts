@@ -200,12 +200,14 @@ export async function gifToMov(
   })
 }
 
-/** 压缩 MP4 / MOV */
+/** 压缩 MP4 / MOV：默认不改尺寸、不抽帧；可选按最大宽度缩放 */
 export async function compressVideo(
   input: File,
   options: {
     format: 'mp4' | 'mov'
     crf: number
+    /** null = 保持原始尺寸（仅做偶数对齐） */
+    maxWidth: number | null
     onProgress?: FfmpegProgressHandler
     onStatus?: (message: string) => void
   },
@@ -215,17 +217,25 @@ export async function compressVideo(
   const inputName = `input.${inputExt}`
   const outputName = isMov ? 'output.mov' : 'output.mp4'
   const outputMime = isMov ? 'video/quicktime' : 'video/mp4'
-  const crf = Math.max(18, Math.min(35, Math.round(options.crf)))
+  const crf = Math.max(16, Math.min(35, Math.round(options.crf)))
+
+  const scale =
+    options.maxWidth != null && options.maxWidth > 0
+      ? `scale='min(${Math.round(options.maxWidth)},iw)':-2`
+      : 'scale=trunc(iw/2)*2:trunc(ih/2)*2'
 
   const args = [
     '-i',
     inputName,
+    // 不改帧率，保留全部帧，保证流畅度
+    '-vsync',
+    '0',
     '-vf',
-    'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+    scale,
     '-c:v',
     'libx264',
     '-preset',
-    'medium',
+    'slow',
     '-crf',
     String(crf),
     '-pix_fmt',
@@ -233,7 +243,7 @@ export async function compressVideo(
     '-c:a',
     'aac',
     '-b:a',
-    '128k',
+    '192k',
   ]
   if (isMov) args.push('-f', 'mov', outputName)
   else args.push('-movflags', '+faststart', outputName)
