@@ -389,11 +389,18 @@ export default function GifCompress() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    const url = source?.url
     return () => {
-      if (source?.url) URL.revokeObjectURL(source.url)
-      if (result?.url) URL.revokeObjectURL(result.url)
+      if (url) URL.revokeObjectURL(url)
     }
-  }, [source, result])
+  }, [source?.url])
+
+  useEffect(() => {
+    const url = result?.url
+    return () => {
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [result?.url])
 
   useEffect(() => {
     if (!previewTarget) {
@@ -412,6 +419,19 @@ export default function GifCompress() {
       if (prev?.url) URL.revokeObjectURL(prev.url)
       return null
     })
+  }
+
+  function downloadResult() {
+    if (!result) return
+    const href = URL.createObjectURL(result.file)
+    const a = document.createElement('a')
+    a.href = href
+    a.download = result.file.name || 'download'
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.setTimeout(() => URL.revokeObjectURL(href), 1500)
   }
 
   function clearMedia() {
@@ -1393,13 +1413,13 @@ export default function GifCompress() {
                   : activeTool.actionLabel}
               </button>
               {result ? (
-                <a
+                <button
+                  type="button"
                   className="gif-compress__btn gif-compress__btn--download"
-                  href={result.url}
-                  download={result.file.name}
+                  onClick={downloadResult}
                 >
                   下载结果
-                </a>
+                </button>
               ) : null}
               <button
                 type="button"
