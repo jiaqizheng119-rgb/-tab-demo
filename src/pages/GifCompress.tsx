@@ -25,6 +25,8 @@ type MediaMeta = {
   url: string
   bytes: number
   kind: 'image' | 'video'
+  width: number | null
+  height: number | null
 }
 
 type ToolConfig = {
@@ -43,7 +45,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始压缩',
-    lead: '默认保持尺寸、帧数、颜色不变，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
+    lead: '默认保持尺寸、帧数、颜色不变，尽量保清晰与流畅；仅压体积。自定义可按百分比调尺寸。',
   },
   {
     id: 'compress-mp4',
@@ -51,7 +53,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'video/mp4,.mp4',
     dropHint: '拖拽 MP4 到这里',
     actionLabel: '开始压缩',
-    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
+    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可按百分比调尺寸。',
   },
   {
     id: 'compress-mov',
@@ -59,7 +61,7 @@ const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
     accept: 'video/quicktime,.mov',
     dropHint: '拖拽 MOV 到这里',
     actionLabel: '开始压缩',
-    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可改宽度。',
+    lead: '默认不改尺寸、不抽帧，尽量保清晰与流畅；仅压体积。自定义可按百分比调尺寸。',
   },
 ]
 
@@ -199,6 +201,47 @@ function mediaKindFromFile(file: File): 'image' | 'video' {
   return 'image'
 }
 
+function readMediaSize(
+  file: File,
+  url: string,
+): Promise<{ width: number | null; height: number | null }> {
+  const kind = mediaKindFromFile(file)
+  return new Promise((resolve) => {
+    if (kind === 'video') {
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      video.onloadedmetadata = () => {
+        resolve({
+          width: video.videoWidth || null,
+          height: video.videoHeight || null,
+        })
+        video.src = ''
+      }
+      video.onerror = () => resolve({ width: null, height: null })
+      video.src = url
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth || null,
+        height: img.naturalHeight || null,
+      })
+    }
+    img.onerror = () => resolve({ width: null, height: null })
+    img.src = url
+  })
+}
+
+function formatSize(
+  width: number | null,
+  height: number | null,
+  emptyLabel = '—',
+): string {
+  if (!width || !height) return emptyLabel
+  return `${width} × ${height} px`
+}
+
 function findTool(tool: ToolId): ToolConfig {
   return (
     COMPRESS_TOOLS.find((t) => t.id === tool) ||
@@ -286,7 +329,7 @@ export default function GifCompress() {
   const [lossy, setLossy] = useState(GIF_PRESETS.recommended.lossy)
   const [videoPreset, setVideoPreset] = useState<VideoPresetId>('recommended')
   const [crf, setCrf] = useState(VIDEO_PRESETS.recommended.crf)
-  const [customWidth, setCustomWidth] = useState<number | ''>('')
+  const [scalePercent, setScalePercent] = useState<number | ''>(100)
   const [keepQuality, setKeepQuality] = useState(true)
   const [fps, setFps] = useState(15)
   const [maxWidth, setMaxWidth] = useState(1080)
@@ -353,7 +396,7 @@ export default function GifCompress() {
   function switchCompress(next: CompressId) {
     setCompressId(next)
     clearMedia()
-    setCustomWidth('')
+    setScalePercent(100)
     setGifPreset('recommended')
     setLossy(GIF_PRESETS.recommended.lossy)
     setVideoPreset('recommended')
@@ -361,9 +404,25 @@ export default function GifCompress() {
     setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
   }
 
+  function resolvedScalePercent(): number {
+    if (scalePercent === '' || Number.isNaN(Number(scalePercent))) return 100
+    return Math.min(200, Math.max(1, Number(scalePercent)))
+  }
+
   function resolvedCustomWidth(): number | null {
-    if (customWidth === '' || Number(customWidth) <= 0) return null
-    return Math.min(4096, Math.max(1, Math.round(Number(customWidth))))
+    const percent = resolvedScalePercent()
+    if (percent === 100) return null
+    if (!source?.width) return null
+    return Math.min(4096, Math.max(1, Math.round((source.width * percent) / 100)))
+  }
+
+  function scaledSize(): { width: number | null; height: number | null } {
+    if (!source?.width || !source?.height) return { width: null, height: null }
+    const percent = resolvedScalePercent()
+    return {
+      width: Math.max(1, Math.round((source.width * percent) / 100)),
+      height: Math.max(1, Math.round((source.height * percent) / 100)),
+    }
   }
 
   function switchConvert(next: ConvertId) {
@@ -417,19 +476,30 @@ export default function GifCompress() {
     setError(null)
     resetResult()
     setProgress(0)
+    setScalePercent(100)
+    const url = URL.createObjectURL(file)
     setSource((prev) => {
       if (prev?.url) URL.revokeObjectURL(prev.url)
       return {
         file,
-        url: URL.createObjectURL(file),
+        url,
         bytes: file.size,
         kind: mediaKindFromFile(file),
+        width: null,
+        height: null,
       }
     })
     setPreviewTarget(null)
     setStatus(
       `已载入 ${file.name}（${formatBytes(file.size)}），可点击「${activeTool.actionLabel}」。`,
     )
+
+    void readMediaSize(file, url).then(({ width, height }) => {
+      setSource((prev) => {
+        if (!prev || prev.url !== url) return prev
+        return { ...prev, width, height }
+      })
+    })
   }
 
   async function runAction(): Promise<File | null> {
@@ -606,22 +676,24 @@ export default function GifCompress() {
         : `自定义参数：${fps} fps，最大宽度 ${maxWidth}px。`
     }
     if (isGifCompress) {
+      const scaled = scaledSize()
       const widthHint =
-        gifPreset === 'custom' && resolvedCustomWidth()
-          ? `，宽度 ${resolvedCustomWidth()}px`
+        gifPreset === 'custom' && resolvedScalePercent() !== 100 && scaled.width
+          ? `，缩放 ${resolvedScalePercent()}% → ${scaled.width}×${scaled.height}`
           : gifPreset === 'custom'
-            ? '，宽度保持原尺寸'
+            ? '，尺寸保持原尺寸'
             : ''
       return gifPreset === 'custom'
         ? `自定义 lossy=${lossy}${widthHint}。默认仍尽量保帧数与颜色。`
         : GIF_PRESETS[gifPreset].hint
     }
     if (isVideoCompress) {
+      const scaled = scaledSize()
       const widthHint =
-        videoPreset === 'custom' && resolvedCustomWidth()
-          ? `，宽度 ${resolvedCustomWidth()}px`
+        videoPreset === 'custom' && resolvedScalePercent() !== 100 && scaled.width
+          ? `，缩放 ${resolvedScalePercent()}% → ${scaled.width}×${scaled.height}`
           : videoPreset === 'custom'
-            ? '，宽度保持原尺寸'
+            ? '，尺寸保持原尺寸'
             : ''
       return videoPreset === 'custom'
         ? `自定义 CRF=${crf}${widthHint}。不抽帧，尽量保流畅。`
@@ -794,28 +866,50 @@ export default function GifCompress() {
                 </div>
                 {gifPreset === 'custom' ? (
                   <div className="gif-compress__field-row">
-                    <label className="gif-compress__label" htmlFor={`${inputId}-gif-w`}>
-                      调整尺寸宽度 (px)
-                    </label>
-                    <div className="gif-compress__number-wrap">
-                      <input
-                        id={`${inputId}-gif-w`}
-                        className="gif-compress__number"
-                        type="number"
-                        min={1}
-                        max={4096}
-                        step={1}
-                        placeholder="留空=原尺寸"
-                        value={customWidth}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          setCustomWidth(v === '' ? '' : Number(v))
-                        }}
-                      />
-                      <span>px</span>
+                    <span className="gif-compress__label">调整尺寸</span>
+                    <div className="gif-compress__size-row">
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">原尺寸</span>
+                        <strong>
+                          {formatSize(
+                            source?.width ?? null,
+                            source?.height ?? null,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
+                      <div className="gif-compress__size-box gif-compress__size-box--input">
+                        <span className="gif-compress__size-caption">缩放</span>
+                        <div className="gif-compress__number-wrap">
+                          <input
+                            className="gif-compress__number"
+                            type="number"
+                            min={1}
+                            max={200}
+                            step={1}
+                            value={scalePercent}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setScalePercent(v === '' ? '' : Number(v))
+                            }}
+                            aria-label="缩放百分比"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">调整后</span>
+                        <strong>
+                          {formatSize(
+                            scaledSize().width,
+                            scaledSize().height,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
                     </div>
                     <p className="gif-compress__field-hint">
-                      留空则保持原尺寸；填写后按宽度等比缩放，帧数/颜色尽量不变。
+                      100% 为原尺寸；小于 100% 会等比缩小。帧数/颜色尽量不变。
                     </p>
                   </div>
                 ) : null}
@@ -870,28 +964,50 @@ export default function GifCompress() {
                 </div>
                 {videoPreset === 'custom' ? (
                   <div className="gif-compress__field-row">
-                    <label className="gif-compress__label" htmlFor={`${inputId}-vid-w`}>
-                      调整尺寸宽度 (px)
-                    </label>
-                    <div className="gif-compress__number-wrap">
-                      <input
-                        id={`${inputId}-vid-w`}
-                        className="gif-compress__number"
-                        type="number"
-                        min={1}
-                        max={4096}
-                        step={1}
-                        placeholder="留空=原尺寸"
-                        value={customWidth}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          setCustomWidth(v === '' ? '' : Number(v))
-                        }}
-                      />
-                      <span>px</span>
+                    <span className="gif-compress__label">调整尺寸</span>
+                    <div className="gif-compress__size-row">
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">原尺寸</span>
+                        <strong>
+                          {formatSize(
+                            source?.width ?? null,
+                            source?.height ?? null,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
+                      <div className="gif-compress__size-box gif-compress__size-box--input">
+                        <span className="gif-compress__size-caption">缩放</span>
+                        <div className="gif-compress__number-wrap">
+                          <input
+                            className="gif-compress__number"
+                            type="number"
+                            min={1}
+                            max={200}
+                            step={1}
+                            value={scalePercent}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setScalePercent(v === '' ? '' : Number(v))
+                            }}
+                            aria-label="缩放百分比"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">调整后</span>
+                        <strong>
+                          {formatSize(
+                            scaledSize().width,
+                            scaledSize().height,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
                     </div>
                     <p className="gif-compress__field-hint">
-                      留空则保持原尺寸与全部帧；填写后按宽度等比缩放，不抽帧。
+                      100% 为原尺寸；小于 100% 会等比缩小。不抽帧，尽量保流畅。
                     </p>
                   </div>
                 ) : null}

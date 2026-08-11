@@ -156,6 +156,42 @@
   gap: 8px;
 }
 
+.gif-compress__size-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr;
+  gap: 10px;
+}
+
+.gif-compress__size-box {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--gc-line);
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.gif-compress__size-box--input {
+  background: #fff;
+}
+
+.gif-compress__size-caption {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gc-muted);
+}
+
+.gif-compress__size-box strong {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a4f57;
+}
+
+.gif-compress__size-box--input .gif-compress__number-wrap {
+  max-width: none;
+}
+
 .gif-compress__number-wrap {
   display: flex;
   align-items: center;
@@ -635,7 +671,8 @@
   }
 
   .gif-compress__compare,
-  .gif-compress__stats {
+  .gif-compress__stats,
+  .gif-compress__size-row {
     grid-template-columns: 1fr;
   }
 }
