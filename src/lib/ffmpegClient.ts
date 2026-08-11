@@ -259,6 +259,89 @@ export async function compressVideo(
   })
 }
 
+function evenPx(n: number): number {
+  return Math.max(2, Math.round(n / 2) * 2)
+}
+
+/**
+ * 视频尺寸变化：
+ * - uniform：等比缩放（百分比）
+ * - free + fitCover：居中放大铺满目标画布后裁剪（适配）
+ * - free：按目标宽高拉伸（不等比）
+ */
+export async function resizeVideo(
+  input: File,
+  options: {
+    format: 'mp4' | 'mov'
+    mode: 'uniform' | 'free'
+    scalePercent?: number
+    width?: number
+    height?: number
+    fitCover?: boolean
+    onProgress?: FfmpegProgressHandler
+    onStatus?: (message: string) => void
+  },
+): Promise<File> {
+  const isMov = options.format === 'mov'
+  const inputExt = input.name.toLowerCase().endsWith('.mov') ? 'mov' : 'mp4'
+  const inputName = `input.${inputExt}`
+  const outputName = isMov ? 'output.mov' : 'output.mp4'
+  const outputMime = isMov ? 'video/quicktime' : 'video/mp4'
+
+  let vf: string
+  if (options.mode === 'uniform') {
+    const percent = Math.min(400, Math.max(1, options.scalePercent ?? 100))
+    if (percent === 100) {
+      vf = 'scale=trunc(iw/2)*2:trunc(ih/2)*2'
+    } else {
+      const factor = percent / 100
+      vf = `scale=trunc(iw*${factor}/2)*2:trunc(ih*${factor}/2)*2`
+    }
+  } else {
+    const w = evenPx(options.width ?? 0)
+    const h = evenPx(options.height ?? 0)
+    if (w < 2 || h < 2) {
+      throw new Error('请输入有效的目标宽高（px）')
+    }
+    vf = options.fitCover
+      ? `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`
+      : `scale=${w}:${h}`
+  }
+
+  const args = [
+    '-i',
+    inputName,
+    '-vsync',
+    '0',
+    '-vf',
+    vf,
+    '-c:v',
+    'libx264',
+    '-preset',
+    'medium',
+    '-crf',
+    '18',
+    '-pix_fmt',
+    'yuv420p',
+    '-c:a',
+    'aac',
+    '-b:a',
+    '192k',
+  ]
+  if (isMov) args.push('-f', 'mov', outputName)
+  else args.push('-movflags', '+faststart', outputName)
+
+  return runConvert({
+    input,
+    inputName,
+    outputName,
+    outputMime,
+    onProgress: options.onProgress,
+    onStatus: options.onStatus,
+    args,
+  })
+}
+
 /** luma amount: 轻 0.7 / 中 1.2 / 强 1.8 */
 function unsharpAmount(level: 'light' | 'medium' | 'strong'): number {
   if (level === 'light') return 0.7

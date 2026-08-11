@@ -160,6 +160,35 @@
   display: grid;
   grid-template-columns: 1.2fr 1fr 1.2fr;
   gap: 10px;
+  align-items: end;
+}
+
+.gif-compress__size-row--free {
+  grid-template-columns: 1fr 1fr auto;
+}
+
+.gif-compress__fit-btn {
+  height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--gc-accent-border);
+  border-radius: 12px;
+  background: var(--gc-accent-soft);
+  color: var(--gc-accent-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gif-compress__fit-btn:hover {
+  border-color: var(--gc-accent);
+}
+
+.gif-compress__fit-btn--active {
+  background: var(--gc-accent);
+  border-color: var(--gc-accent);
+  color: #fff;
 }
 
 .gif-compress__size-box {
@@ -672,7 +701,12 @@
 
   .gif-compress__compare,
   .gif-compress__stats,
-  .gif-compress__size-row {
+  .gif-compress__size-row,
+  .gif-compress__size-row--free {
     grid-template-columns: 1fr;
+  }
+
+  .gif-compress__fit-btn {
+    width: 100%;
   }
 }

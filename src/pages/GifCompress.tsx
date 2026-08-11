@@ -6,21 +6,28 @@ import {
   enhanceClarity,
   gifToMov,
   gifToMp4,
+  resizeVideo,
   videoToGif,
 } from '../lib/ffmpegClient'
 import '../gif-compress.css'
 import '../toolbox.css'
 
-type MainTab = 'compress' | 'convert' | 'clarity'
+type MainTab = 'compress' | 'convert' | 'clarity' | 'resize'
 
 type CompressId = 'gif' | 'mp4' | 'mov'
 type ConvertId = 'mov-to-gif' | 'mp4-to-gif' | 'gif-to-mp4' | 'gif-to-mov'
 type ClarityId = 'gif' | 'mp4' | 'mov'
-type ToolId = `compress-${CompressId}` | ConvertId | `clarity-${ClarityId}`
+type ResizeId = 'mp4' | 'mov'
+type ToolId =
+  | `compress-${CompressId}`
+  | ConvertId
+  | `clarity-${ClarityId}`
+  | `resize-${ResizeId}`
 
 type GifPresetId = 'recommended' | 'smaller' | 'custom'
 type VideoPresetId = 'recommended' | 'smaller' | 'custom'
 type ClarityLevel = 'light' | 'medium' | 'strong'
+type ResizeMode = 'uniform' | 'free'
 
 type MediaMeta = {
   file: File
@@ -129,11 +136,32 @@ const CLARITY_TOOLS: Array<ToolConfig & { id: `clarity-${ClarityId}` }> = [
   },
 ]
 
+const RESIZE_TOOLS: Array<ToolConfig & { id: `resize-${ResizeId}` }> = [
+  {
+    id: 'resize-mp4',
+    label: 'MP4',
+    accept: 'video/mp4,.mp4',
+    dropHint: '拖拽 MP4 到这里',
+    actionLabel: '开始调整',
+    lead: '调整 MP4 尺寸：等比按百分比放大，或按目标宽高裁剪/适配。',
+  },
+  {
+    id: 'resize-mov',
+    label: 'MOV',
+    accept: 'video/quicktime,.mov',
+    dropHint: '拖拽 MOV 到这里',
+    actionLabel: '开始调整',
+    lead: '调整 MOV 尺寸：等比按百分比放大，或按目标宽高裁剪/适配。',
+  },
+]
+
 const MAIN_LEADS: Record<MainTab, string> = {
   compress: '选择下方格式压缩。默认尽量保持尺寸、帧数、颜色与流畅清晰度；文件只在本地处理。',
   convert: '选择下方转换方式。默认保画质，不主动压缩；文件只在本地处理。',
   clarity:
     '选择下方格式增强清晰度（锐化）。尺寸不变；文件只在本地处理。',
+  resize:
+    '选择下方格式调整尺寸。支持等比放大，或按目标宽高裁剪；文件只在本地处理。',
 }
 
 const GIF_PRESETS: Record<
@@ -249,6 +277,7 @@ function findTool(tool: ToolId): ToolConfig {
     COMPRESS_TOOLS.find((t) => t.id === tool) ||
     CONVERT_TOOLS.find((t) => t.id === tool) ||
     CLARITY_TOOLS.find((t) => t.id === tool) ||
+    RESIZE_TOOLS.find((t) => t.id === tool) ||
     COMPRESS_TOOLS[0]
   )
 }
@@ -265,7 +294,7 @@ function isAccepted(tool: ToolId, file: File): boolean {
   ) {
     return type.includes('gif') || name.endsWith('.gif')
   }
-  if (tool === 'compress-mp4' || tool === 'clarity-mp4') {
+  if (tool === 'compress-mp4' || tool === 'clarity-mp4' || tool === 'resize-mp4') {
     return name.endsWith('.mp4') || type.includes('mp4')
   }
   if (tool === 'mp4-to-gif') {
@@ -275,7 +304,7 @@ function isAccepted(tool: ToolId, file: File): boolean {
       type.startsWith('video/')
     )
   }
-  if (tool === 'compress-mov' || tool === 'clarity-mov') {
+  if (tool === 'compress-mov' || tool === 'clarity-mov' || tool === 'resize-mov') {
     return name.endsWith('.mov') || type.includes('quicktime')
   }
   if (tool === 'mov-to-gif') {
@@ -298,9 +327,11 @@ function sourceLabel(tool: ToolId): string {
 function resultLabel(mainTab: MainTab, tool: ToolId): string {
   if (mainTab === 'compress') return '压缩后'
   if (mainTab === 'clarity') return '增强后'
+  if (mainTab === 'resize') return '调整后'
   if (tool === 'mov-to-gif' || tool === 'mp4-to-gif') return 'GIF'
   if (tool === 'gif-to-mp4') return 'MP4'
-  return 'MOV'
+  if (tool === 'gif-to-mov') return 'MOV'
+  return '结果'
 }
 
 function MediaPreview({ meta, alt }: { meta: MediaMeta; alt: string }) {
@@ -318,13 +349,16 @@ export default function GifCompress() {
   const [compressId, setCompressId] = useState<CompressId>('gif')
   const [convertId, setConvertId] = useState<ConvertId>('mov-to-gif')
   const [clarityId, setClarityId] = useState<ClarityId>('gif')
+  const [resizeId, setResizeId] = useState<ResizeId>('mp4')
 
   const tool: ToolId =
     mainTab === 'compress'
       ? `compress-${compressId}`
       : mainTab === 'convert'
         ? convertId
-        : `clarity-${clarityId}`
+        : mainTab === 'clarity'
+          ? `clarity-${clarityId}`
+          : `resize-${resizeId}`
   const activeTool = findTool(tool)
 
   const [gifPreset, setGifPreset] = useState<GifPresetId>('recommended')
@@ -332,6 +366,11 @@ export default function GifCompress() {
   const [videoPreset, setVideoPreset] = useState<VideoPresetId>('recommended')
   const [crf, setCrf] = useState(VIDEO_PRESETS.recommended.crf)
   const [scalePercent, setScalePercent] = useState<number | ''>(100)
+  const [resizeMode, setResizeMode] = useState<ResizeMode>('uniform')
+  const [resizeScalePercent, setResizeScalePercent] = useState<number | ''>(150)
+  const [resizeWidth, setResizeWidth] = useState<number | ''>('')
+  const [resizeHeight, setResizeHeight] = useState<number | ''>('')
+  const [resizeFitCover, setResizeFitCover] = useState(false)
   const [keepQuality, setKeepQuality] = useState(true)
   const [fps, setFps] = useState(15)
   const [maxWidth, setMaxWidth] = useState(1080)
@@ -392,6 +431,11 @@ export default function GifCompress() {
     setMainTab(next)
     clearMedia()
     setKeepQuality(true)
+    setResizeMode('uniform')
+    setResizeScalePercent(150)
+    setResizeWidth('')
+    setResizeHeight('')
+    setResizeFitCover(false)
     setStatus('选择功能后拖入文件，全程在本地浏览器完成。')
   }
 
@@ -440,6 +484,33 @@ export default function GifCompress() {
     setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
   }
 
+  function switchResize(next: ResizeId) {
+    setResizeId(next)
+    clearMedia()
+    setResizeMode('uniform')
+    setResizeScalePercent(150)
+    setResizeWidth('')
+    setResizeHeight('')
+    setResizeFitCover(false)
+    setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
+  }
+
+  function resolvedResizeScalePercent(): number {
+    if (resizeScalePercent === '' || Number.isNaN(Number(resizeScalePercent))) {
+      return 100
+    }
+    return Math.min(400, Math.max(1, Number(resizeScalePercent)))
+  }
+
+  function resizeScaledSize(): { width: number | null; height: number | null } {
+    if (!source?.width || !source?.height) return { width: null, height: null }
+    const percent = resolvedResizeScalePercent()
+    return {
+      width: Math.max(1, Math.round((source.width * percent) / 100)),
+      height: Math.max(1, Math.round((source.height * percent) / 100)),
+    }
+  }
+
   function applyGifPreset(next: GifPresetId) {
     setGifPreset(next)
     if (next !== 'custom') setLossy(GIF_PRESETS[next].lossy)
@@ -479,6 +550,9 @@ export default function GifCompress() {
     resetResult()
     setProgress(0)
     setScalePercent(100)
+    setResizeWidth('')
+    setResizeHeight('')
+    setResizeFitCover(false)
     const url = URL.createObjectURL(file)
     setSource((prev) => {
       if (prev?.url) URL.revokeObjectURL(prev.url)
@@ -501,6 +575,10 @@ export default function GifCompress() {
         if (!prev || prev.url !== url) return prev
         return { ...prev, width, height }
       })
+      if (width && height) {
+        setResizeWidth((prev) => (prev === '' ? width : prev))
+        setResizeHeight((prev) => (prev === '' ? height : prev))
+      }
     })
   }
 
@@ -582,6 +660,31 @@ export default function GifCompress() {
       )
     }
 
+    if (tool === 'resize-mp4' || tool === 'resize-mov') {
+      const format = tool === 'resize-mov' ? 'mov' : 'mp4'
+      const out = await resizeVideo(source.file, {
+        format,
+        mode: resizeMode,
+        scalePercent:
+          resizeMode === 'uniform' ? resolvedResizeScalePercent() : undefined,
+        width:
+          resizeMode === 'free' && resizeWidth !== ''
+            ? Number(resizeWidth)
+            : undefined,
+        height:
+          resizeMode === 'free' && resizeHeight !== ''
+            ? Number(resizeHeight)
+            : undefined,
+        fitCover: resizeMode === 'free' ? resizeFitCover : false,
+        ...common,
+      })
+      return new File(
+        [out],
+        `${baseName(source.file.name)}-resized.${format}`,
+        { type: out.type },
+      )
+    }
+
     return null
   }
 
@@ -596,7 +699,9 @@ export default function GifCompress() {
         ? '正在压缩…'
         : mainTab === 'clarity'
           ? '正在增强清晰度…'
-          : '正在转换…',
+          : mainTab === 'resize'
+            ? '正在调整尺寸…'
+            : '正在转换…',
     )
 
     try {
@@ -680,6 +785,19 @@ export default function GifCompress() {
     if (mainTab === 'clarity') {
       return `当前强度：${CLARITY_LEVELS.find((l) => l.id === clarityLevel)?.label}。过强可能出现锐化噪点。`
     }
+    if (mainTab === 'resize') {
+      if (resizeMode === 'uniform') {
+        const scaled = resizeScaledSize()
+        return scaled.width && scaled.height
+          ? `等比放大 ${resolvedResizeScalePercent()}% → ${scaled.width}×${scaled.height} px`
+          : `等比放大 ${resolvedResizeScalePercent()}%`
+      }
+      const w = resizeWidth === '' ? '—' : String(resizeWidth)
+      const h = resizeHeight === '' ? '—' : String(resizeHeight)
+      return resizeFitCover
+        ? `不等比目标 ${w}×${h} px：居中放大并裁剪，完全铺满画布（适配）`
+        : `不等比拉伸至 ${w}×${h} px（可点「适配」改为居中铺满裁剪）`
+    }
     if (isVideoToGif) {
       return keepQuality
         ? '当前为原画质转换：保留原始尺寸与全部帧。'
@@ -717,14 +835,18 @@ export default function GifCompress() {
       ? COMPRESS_TOOLS
       : mainTab === 'convert'
         ? CONVERT_TOOLS
-        : CLARITY_TOOLS
+        : mainTab === 'clarity'
+          ? CLARITY_TOOLS
+          : RESIZE_TOOLS
 
   const subSelected =
     mainTab === 'compress'
       ? `compress-${compressId}`
       : mainTab === 'convert'
         ? convertId
-        : `clarity-${clarityId}`
+        : mainTab === 'clarity'
+          ? `clarity-${clarityId}`
+          : `resize-${resizeId}`
 
   return (
     <main className="gif-compress">
@@ -744,6 +866,7 @@ export default function GifCompress() {
                 ['compress', '压缩'],
                 ['convert', '转格式'],
                 ['clarity', '增加清晰度'],
+                ['resize', '视频尺寸变化'],
               ] as const
             ).map(([id, label]) => (
               <button
@@ -780,8 +903,10 @@ export default function GifCompress() {
                     switchCompress(item.id.replace('compress-', '') as CompressId)
                   } else if (mainTab === 'convert') {
                     switchConvert(item.id as ConvertId)
-                  } else {
+                  } else if (mainTab === 'clarity') {
                     switchClarity(item.id.replace('clarity-', '') as ClarityId)
+                  } else {
+                    switchResize(item.id.replace('resize-', '') as ResizeId)
                   }
                 }}
               >
@@ -1107,6 +1232,151 @@ export default function GifCompress() {
                   ))}
                 </div>
               </div>
+            ) : null}
+
+            {mainTab === 'resize' ? (
+              <>
+                <div>
+                  <span className="gif-compress__label">调整方式</span>
+                  <div className="gif-compress__presets" role="group">
+                    <button
+                      type="button"
+                      className={`gif-compress__preset${
+                        resizeMode === 'uniform'
+                          ? ' gif-compress__preset--active'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        setResizeMode('uniform')
+                        setResizeFitCover(false)
+                      }}
+                    >
+                      等比放大
+                    </button>
+                    <button
+                      type="button"
+                      className={`gif-compress__preset${
+                        resizeMode === 'free'
+                          ? ' gif-compress__preset--active'
+                          : ''
+                      }`}
+                      onClick={() => setResizeMode('free')}
+                    >
+                      不等比放大
+                    </button>
+                  </div>
+                </div>
+
+                {resizeMode === 'uniform' ? (
+                  <div className="gif-compress__field-row">
+                    <span className="gif-compress__label">放大比例</span>
+                    <div className="gif-compress__size-row">
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">原尺寸</span>
+                        <strong>
+                          {formatSize(
+                            source?.width ?? null,
+                            source?.height ?? null,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
+                      <div className="gif-compress__size-box gif-compress__size-box--input">
+                        <span className="gif-compress__size-caption">缩放</span>
+                        <div className="gif-compress__number-wrap">
+                          <input
+                            className="gif-compress__number"
+                            type="number"
+                            min={1}
+                            max={400}
+                            step={1}
+                            value={resizeScalePercent}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setResizeScalePercent(v === '' ? '' : Number(v))
+                            }}
+                            aria-label="放大百分比"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      <div className="gif-compress__size-box">
+                        <span className="gif-compress__size-caption">修改后</span>
+                        <strong>
+                          {formatSize(
+                            resizeScaledSize().width,
+                            resizeScaledSize().height,
+                            source ? '读取中…' : '请先上传文件',
+                          )}
+                        </strong>
+                      </div>
+                    </div>
+                    <p className="gif-compress__field-hint">
+                      按百分比等比放大，宽高比不变。
+                    </p>
+                  </div>
+                ) : (
+                  <div className="gif-compress__field-row">
+                    <span className="gif-compress__label">目标尺寸</span>
+                    <div className="gif-compress__size-row gif-compress__size-row--free">
+                      <div className="gif-compress__size-box gif-compress__size-box--input">
+                        <span className="gif-compress__size-caption">宽</span>
+                        <div className="gif-compress__number-wrap">
+                          <input
+                            className="gif-compress__number"
+                            type="number"
+                            min={2}
+                            max={7680}
+                            step={2}
+                            value={resizeWidth}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setResizeWidth(v === '' ? '' : Number(v))
+                              setResizeFitCover(false)
+                            }}
+                            aria-label="目标宽度"
+                          />
+                          <span>px</span>
+                        </div>
+                      </div>
+                      <div className="gif-compress__size-box gif-compress__size-box--input">
+                        <span className="gif-compress__size-caption">高</span>
+                        <div className="gif-compress__number-wrap">
+                          <input
+                            className="gif-compress__number"
+                            type="number"
+                            min={2}
+                            max={7680}
+                            step={2}
+                            value={resizeHeight}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setResizeHeight(v === '' ? '' : Number(v))
+                              setResizeFitCover(false)
+                            }}
+                            aria-label="目标高度"
+                          />
+                          <span>px</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className={`gif-compress__fit-btn${
+                          resizeFitCover ? ' gif-compress__fit-btn--active' : ''
+                        }`}
+                        onClick={() => setResizeFitCover((v) => !v)}
+                      >
+                        适配
+                      </button>
+                    </div>
+                    <p className="gif-compress__field-hint">
+                      {resizeFitCover
+                        ? '已开启适配：视频会居中放大并裁剪，完全铺满目标宽高。'
+                        : '默认按目标宽高拉伸；点「适配」改为居中放大并裁剪铺满。'}
+                    </p>
+                  </div>
+                )}
+              </>
             ) : null}
 
             <div className="gif-compress__actions">
