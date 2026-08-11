@@ -76,6 +76,40 @@
   padding: 20px;
 }
 
+.gif-compress__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.gif-compress__tool {
+  appearance: none;
+  border: 1px solid var(--gc-accent-border);
+  background: #fff;
+  color: var(--gc-accent-text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.gif-compress__tool:hover {
+  background: var(--gc-accent-soft);
+}
+
+.gif-compress__tool--active {
+  background: #d7eaf8;
+  border-color: var(--gc-accent);
+  color: var(--gc-accent-text);
+}
+
 .gif-compress__drop {
   display: flex;
   flex-direction: column;
@@ -436,10 +470,44 @@
     #f7f7f7;
 }
 
+.gif-compress__preview img,
+.gif-compress__preview video,
+.gif-compress__modal-media img,
+.gif-compress__modal-media video {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}
+
+.gif-compress__modal-media img,
+.gif-compress__modal-media video {
+  max-height: 72vh;
+}
+
+.gif-compress__modal-body--stack .gif-compress__modal-media img,
+.gif-compress__modal-body--stack .gif-compress__modal-media video {
+  max-height: 42vh;
+}
+
 .gif-compress__preview img {
   max-width: 100%;
   max-height: 280px;
   object-fit: contain;
+}
+
+.gif-compress__progress {
+  margin-top: 12px;
+  height: 8px;
+  border-radius: 999px;
+  background: #eef1f4;
+  overflow: hidden;
+}
+
+.gif-compress__progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b7d7f2, #7eb6e8);
+  transition: width 0.2s ease;
 }
 
 .gif-compress__stats {
