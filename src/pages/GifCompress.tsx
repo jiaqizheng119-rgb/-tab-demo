@@ -1,15 +1,24 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import gifsicle from 'gifsicle-wasm-browser'
-import { gifToMov, gifToMp4, videoToGif } from '../lib/ffmpegClient'
+import {
+  compressVideo,
+  enhanceClarity,
+  gifToMov,
+  gifToMp4,
+  videoToGif,
+} from '../lib/ffmpegClient'
 import '../gif-compress.css'
 
-type MainTab = 'compress' | 'convert'
+type MainTab = 'compress' | 'convert' | 'clarity'
 
+type CompressId = 'gif' | 'mp4' | 'mov'
 type ConvertId = 'mov-to-gif' | 'mp4-to-gif' | 'gif-to-mp4' | 'gif-to-mov'
+type ClarityId = 'gif' | 'mp4' | 'mov'
+type ToolId = `compress-${CompressId}` | ConvertId | `clarity-${ClarityId}`
 
-type ToolId = 'compress' | ConvertId
-
-type PresetId = 'recommended' | 'smaller' | 'custom'
+type GifPresetId = 'recommended' | 'smaller' | 'custom'
+type VideoPresetId = 'recommended' | 'smaller' | 'custom'
+type ClarityLevel = 'light' | 'medium' | 'strong'
 
 type MediaMeta = {
   file: File
@@ -18,30 +27,50 @@ type MediaMeta = {
   kind: 'image' | 'video'
 }
 
-const COMPRESS_TOOL = {
-  id: 'compress' as const,
-  label: 'GIF 压缩',
-  accept: 'image/gif,.gif',
-  dropHint: '拖拽 GIF 到这里',
-  actionLabel: '开始压缩',
-  lead: '保持尺寸、帧数、调色板不变；用 gifsicle 轻度 lossy 压体积。文件只在本地处理，不会上传。',
-}
-
-const CONVERT_TOOLS: Array<{
-  id: ConvertId
+type ToolConfig = {
+  id: ToolId
   label: string
   accept: string
   dropHint: string
   actionLabel: string
   lead: string
-}> = [
+}
+
+const COMPRESS_TOOLS: Array<ToolConfig & { id: `compress-${CompressId}` }> = [
+  {
+    id: 'compress-gif',
+    label: 'GIF 压缩',
+    accept: 'image/gif,.gif',
+    dropHint: '拖拽 GIF 到这里',
+    actionLabel: '开始压缩',
+    lead: '保持尺寸、帧数、调色板不变；用 gifsicle 轻度 lossy 压体积。',
+  },
+  {
+    id: 'compress-mp4',
+    label: 'MP4 压缩',
+    accept: 'video/mp4,.mp4',
+    dropHint: '拖拽 MP4 到这里',
+    actionLabel: '开始压缩',
+    lead: '压缩 MP4 体积，尽量保持观感；可调画质档位。',
+  },
+  {
+    id: 'compress-mov',
+    label: 'MOV 压缩',
+    accept: 'video/quicktime,.mov',
+    dropHint: '拖拽 MOV 到这里',
+    actionLabel: '开始压缩',
+    lead: '压缩 MOV 体积，尽量保持观感；可调画质档位。',
+  },
+]
+
+const CONVERT_TOOLS: Array<ToolConfig & { id: ConvertId }> = [
   {
     id: 'mov-to-gif',
     label: 'MOV→GIF',
     accept: 'video/quicktime,.mov,video/mp4',
     dropHint: '拖拽 MOV 到这里',
     actionLabel: '开始转换',
-    lead: '把 MOV 转成 GIF，默认保持原尺寸与全部帧，只做格式转换，不主动压缩。',
+    lead: '把 MOV 转成 GIF，默认保持原尺寸与全部帧，只做格式转换。',
   },
   {
     id: 'mp4-to-gif',
@@ -49,7 +78,7 @@ const CONVERT_TOOLS: Array<{
     accept: 'video/mp4,.mp4,video/*',
     dropHint: '拖拽 MP4 到这里',
     actionLabel: '开始转换',
-    lead: '把 MP4 转成 GIF，默认保持原尺寸与全部帧，只做格式转换，不主动压缩。',
+    lead: '把 MP4 转成 GIF，默认保持原尺寸与全部帧，只做格式转换。',
   },
   {
     id: 'gif-to-mp4',
@@ -57,7 +86,7 @@ const CONVERT_TOOLS: Array<{
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始转换',
-    lead: '把 GIF 转成高画质 MP4（H.264），只做格式转换，不主动压体积。',
+    lead: '把 GIF 转成高画质 MP4，只做格式转换。',
   },
   {
     id: 'gif-to-mov',
@@ -65,28 +94,81 @@ const CONVERT_TOOLS: Array<{
     accept: 'image/gif,.gif',
     dropHint: '拖拽 GIF 到这里',
     actionLabel: '开始转换',
-    lead: '把 GIF 转成高画质 MOV（H.264），只做格式转换，不主动压体积。',
+    lead: '把 GIF 转成高画质 MOV，只做格式转换。',
   },
 ]
 
-const CONVERT_LEAD =
-  '选择下方转换方式。格式转换默认保画质，不主动压缩；文件只在本地处理。'
+const CLARITY_TOOLS: Array<ToolConfig & { id: `clarity-${ClarityId}` }> = [
+  {
+    id: 'clarity-gif',
+    label: 'GIF',
+    accept: 'image/gif,.gif',
+    dropHint: '拖拽 GIF 到这里',
+    actionLabel: '开始增强',
+    lead: '对 GIF 做锐化增强，尺寸不变。这是滤镜清晰度，不是 AI 超分。',
+  },
+  {
+    id: 'clarity-mp4',
+    label: 'MP4',
+    accept: 'video/mp4,.mp4',
+    dropHint: '拖拽 MP4 到这里',
+    actionLabel: '开始增强',
+    lead: '对 MP4 做锐化增强，尺寸不变。这是滤镜清晰度，不是 AI 超分。',
+  },
+  {
+    id: 'clarity-mov',
+    label: 'MOV',
+    accept: 'video/quicktime,.mov',
+    dropHint: '拖拽 MOV 到这里',
+    actionLabel: '开始增强',
+    lead: '对 MOV 做锐化增强，尺寸不变。这是滤镜清晰度，不是 AI 超分。',
+  },
+]
 
-const PRESETS: Record<
-  Exclude<PresetId, 'custom'>,
+const MAIN_LEADS: Record<MainTab, string> = {
+  compress: '选择下方格式进行压缩。文件只在本地处理，不会上传。',
+  convert: '选择下方转换方式。默认保画质，不主动压缩；文件只在本地处理。',
+  clarity:
+    '选择下方格式增强清晰度（锐化）。尺寸不变；文件只在本地处理。',
+}
+
+const GIF_PRESETS: Record<
+  Exclude<GifPresetId, 'custom'>,
   { label: string; lossy: number; hint: string }
 > = {
   recommended: {
     label: '推荐画质',
     lossy: 20,
-    hint: '与上次压缩一致：尺寸/帧数/颜色不变，体积通常可降约 85%+',
+    hint: '尺寸/帧数/颜色不变，体积通常可明显下降。',
   },
   smaller: {
     label: '更小体积',
     lossy: 40,
-    hint: '同样不改尺寸帧数颜色，体积更小，肉眼差异通常很小',
+    hint: '尺寸/帧数/颜色不变，体积更小，肉眼差异通常很小。',
   },
 }
+
+const VIDEO_PRESETS: Record<
+  Exclude<VideoPresetId, 'custom'>,
+  { label: string; crf: number; hint: string }
+> = {
+  recommended: {
+    label: '推荐画质',
+    crf: 23,
+    hint: '体积与画质较均衡，适合大多数场景。',
+  },
+  smaller: {
+    label: '更小体积',
+    crf: 28,
+    hint: '体积更小，画质略降，适合分享传输。',
+  },
+}
+
+const CLARITY_LEVELS: Array<{ id: ClarityLevel; label: string }> = [
+  { id: 'light', label: '轻度' },
+  { id: 'medium', label: '中度' },
+  { id: 'strong', label: '较强' },
+]
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -94,7 +176,7 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`
 }
 
-function buildCompressCommand(
+function buildGifCompressCommand(
   inputName: string,
   lossy: number,
   bytes: number,
@@ -114,18 +196,29 @@ function mediaKindFromFile(file: File): 'image' | 'video' {
   return 'image'
 }
 
+function findTool(tool: ToolId): ToolConfig {
+  return (
+    COMPRESS_TOOLS.find((t) => t.id === tool) ||
+    CONVERT_TOOLS.find((t) => t.id === tool) ||
+    CLARITY_TOOLS.find((t) => t.id === tool) ||
+    COMPRESS_TOOLS[0]
+  )
+}
+
 function isAccepted(tool: ToolId, file: File): boolean {
   const name = file.name.toLowerCase()
   const type = file.type.toLowerCase()
-  if (tool === 'compress' || tool === 'gif-to-mp4' || tool === 'gif-to-mov') {
+
+  if (
+    tool === 'compress-gif' ||
+    tool === 'clarity-gif' ||
+    tool === 'gif-to-mp4' ||
+    tool === 'gif-to-mov'
+  ) {
     return type.includes('gif') || name.endsWith('.gif')
   }
-  if (tool === 'mov-to-gif') {
-    return (
-      name.endsWith('.mov') ||
-      type.includes('quicktime') ||
-      type.includes('mp4')
-    )
+  if (tool === 'compress-mp4' || tool === 'clarity-mp4') {
+    return name.endsWith('.mp4') || type.includes('mp4')
   }
   if (tool === 'mp4-to-gif') {
     return (
@@ -134,29 +227,35 @@ function isAccepted(tool: ToolId, file: File): boolean {
       type.startsWith('video/')
     )
   }
+  if (tool === 'compress-mov' || tool === 'clarity-mov') {
+    return name.endsWith('.mov') || type.includes('quicktime')
+  }
+  if (tool === 'mov-to-gif') {
+    return (
+      name.endsWith('.mov') ||
+      type.includes('quicktime') ||
+      type.includes('mp4')
+    )
+  }
   return false
 }
 
 function sourceLabel(tool: ToolId): string {
-  if (tool === 'mov-to-gif') return '原视频 (MOV)'
-  if (tool === 'mp4-to-gif') return '原视频 (MP4)'
-  return '原图'
+  if (tool.includes('mov') && !tool.startsWith('gif-to')) return '原视频 (MOV)'
+  if (tool.includes('mp4') && !tool.startsWith('gif-to')) return '原视频 (MP4)'
+  if (tool.includes('gif')) return '原图 (GIF)'
+  return '原文件'
 }
 
-function resultLabel(tool: ToolId): string {
-  if (tool === 'compress') return '压缩后'
+function resultLabel(mainTab: MainTab, tool: ToolId): string {
+  if (mainTab === 'compress') return '压缩后'
+  if (mainTab === 'clarity') return '增强后'
   if (tool === 'mov-to-gif' || tool === 'mp4-to-gif') return 'GIF'
   if (tool === 'gif-to-mp4') return 'MP4'
   return 'MOV'
 }
 
-function MediaPreview({
-  meta,
-  alt,
-}: {
-  meta: MediaMeta
-  alt: string
-}) {
+function MediaPreview({ meta, alt }: { meta: MediaMeta; alt: string }) {
   if (meta.kind === 'video') {
     return <video src={meta.url} controls playsInline muted loop />
   }
@@ -168,19 +267,26 @@ export default function GifCompress() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [mainTab, setMainTab] = useState<MainTab>('compress')
+  const [compressId, setCompressId] = useState<CompressId>('gif')
   const [convertId, setConvertId] = useState<ConvertId>('mov-to-gif')
-  const tool: ToolId = mainTab === 'compress' ? 'compress' : convertId
-  const activeTool =
-    tool === 'compress'
-      ? COMPRESS_TOOL
-      : (CONVERT_TOOLS.find((t) => t.id === convertId) ?? CONVERT_TOOLS[0])
-  const pageLead = mainTab === 'compress' ? COMPRESS_TOOL.lead : activeTool.lead
+  const [clarityId, setClarityId] = useState<ClarityId>('gif')
 
-  const [preset, setPreset] = useState<PresetId>('recommended')
-  const [lossy, setLossy] = useState(PRESETS.recommended.lossy)
+  const tool: ToolId =
+    mainTab === 'compress'
+      ? `compress-${compressId}`
+      : mainTab === 'convert'
+        ? convertId
+        : `clarity-${clarityId}`
+  const activeTool = findTool(tool)
+
+  const [gifPreset, setGifPreset] = useState<GifPresetId>('recommended')
+  const [lossy, setLossy] = useState(GIF_PRESETS.recommended.lossy)
+  const [videoPreset, setVideoPreset] = useState<VideoPresetId>('recommended')
+  const [crf, setCrf] = useState(VIDEO_PRESETS.recommended.crf)
   const [keepQuality, setKeepQuality] = useState(true)
   const [fps, setFps] = useState(15)
   const [maxWidth, setMaxWidth] = useState(1080)
+  const [clarityLevel, setClarityLevel] = useState<ClarityLevel>('medium')
   const [progress, setProgress] = useState(0)
 
   const [source, setSource] = useState<MediaMeta | null>(null)
@@ -191,9 +297,7 @@ export default function GifCompress() {
     null,
   )
   const [compareMode, setCompareMode] = useState(false)
-  const [status, setStatus] = useState(
-    '选择功能后拖入文件，全程在本地浏览器完成。',
-  )
+  const [status, setStatus] = useState('选择功能后拖入文件，全程在本地浏览器完成。')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -239,11 +343,13 @@ export default function GifCompress() {
     setMainTab(next)
     clearMedia()
     setKeepQuality(true)
-    setStatus(
-      next === 'compress'
-        ? '拖入 GIF 后即可压缩，全程在本地浏览器完成。'
-        : '选择转换方式后拖入文件，全程在本地浏览器完成。',
-    )
+    setStatus('选择功能后拖入文件，全程在本地浏览器完成。')
+  }
+
+  function switchCompress(next: CompressId) {
+    setCompressId(next)
+    clearMedia()
+    setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
   }
 
   function switchConvert(next: ConvertId) {
@@ -253,22 +359,44 @@ export default function GifCompress() {
     setStatus('选择转换方式后拖入文件，全程在本地浏览器完成。')
   }
 
-  function applyPreset(next: PresetId) {
-    setPreset(next)
-    if (next !== 'custom') setLossy(PRESETS[next].lossy)
+  function switchClarity(next: ClarityId) {
+    setClarityId(next)
+    clearMedia()
+    setStatus('选择格式后拖入文件，全程在本地浏览器完成。')
+  }
+
+  function applyGifPreset(next: GifPresetId) {
+    setGifPreset(next)
+    if (next !== 'custom') setLossy(GIF_PRESETS[next].lossy)
   }
 
   function onLossyChange(value: number) {
     setLossy(value)
-    if (value === PRESETS.recommended.lossy) setPreset('recommended')
-    else if (value === PRESETS.smaller.lossy) setPreset('smaller')
-    else setPreset('custom')
+    if (value === GIF_PRESETS.recommended.lossy) setGifPreset('recommended')
+    else if (value === GIF_PRESETS.smaller.lossy) setGifPreset('smaller')
+    else setGifPreset('custom')
+  }
+
+  function applyVideoPreset(next: VideoPresetId) {
+    setVideoPreset(next)
+    if (next !== 'custom') setCrf(VIDEO_PRESETS[next].crf)
+  }
+
+  function onCrfChange(value: number) {
+    setCrf(value)
+    if (value === VIDEO_PRESETS.recommended.crf) setVideoPreset('recommended')
+    else if (value === VIDEO_PRESETS.smaller.crf) setVideoPreset('smaller')
+    else setVideoPreset('custom')
   }
 
   function loadFile(file: File | undefined | null) {
     if (!file) return
     if (!isAccepted(tool, file)) {
-      setError(`当前功能不支持该文件类型，请上传：${activeTool.dropHint.replace('拖拽 ', '').replace(' 到这里', '')}`)
+      setError(
+        `当前功能不支持该文件类型，请上传：${activeTool.dropHint
+          .replace('拖拽 ', '')
+          .replace(' 到这里', '')}`,
+      )
       return
     }
 
@@ -290,26 +418,32 @@ export default function GifCompress() {
     )
   }
 
-  async function runCompress() {
-    if (!source) return
-    const inputName = 'input.gif'
-    const command = buildCompressCommand(inputName, lossy, source.bytes)
-    const files = await gifsicle.run({
-      input: [{ file: source.file, name: inputName }],
-      command: [command],
-    })
-    const out = files?.[0]
-    if (!out) throw new Error('压缩失败，未得到输出文件。')
-    return new File([out], `${baseName(source.file.name)}-compressed.gif`, {
-      type: 'image/gif',
-    })
-  }
-
-  async function runConvert() {
+  async function runAction(): Promise<File | null> {
     if (!source) return null
     const common = {
       onProgress: (ratio: number) => setProgress(ratio),
       onStatus: (message: string) => setStatus(message),
+    }
+
+    if (tool === 'compress-gif') {
+      const inputName = 'input.gif'
+      const files = await gifsicle.run({
+        input: [{ file: source.file, name: inputName }],
+        command: [buildGifCompressCommand(inputName, lossy, source.bytes)],
+      })
+      const out = files?.[0]
+      if (!out) throw new Error('压缩失败，未得到输出文件。')
+      return new File([out], `${baseName(source.file.name)}-compressed.gif`, {
+        type: 'image/gif',
+      })
+    }
+
+    if (tool === 'compress-mp4' || tool === 'compress-mov') {
+      const format = tool === 'compress-mov' ? 'mov' : 'mp4'
+      const out = await compressVideo(source.file, { format, crf, ...common })
+      return new File([out], `${baseName(source.file.name)}-compressed.${format}`, {
+        type: out.type,
+      })
     }
 
     if (tool === 'mov-to-gif' || tool === 'mp4-to-gif') {
@@ -322,18 +456,35 @@ export default function GifCompress() {
         type: 'image/gif',
       })
     }
+
     if (tool === 'gif-to-mp4') {
       const out = await gifToMp4(source.file, common)
       return new File([out], `${baseName(source.file.name)}.mp4`, {
         type: 'video/mp4',
       })
     }
+
     if (tool === 'gif-to-mov') {
       const out = await gifToMov(source.file, common)
       return new File([out], `${baseName(source.file.name)}.mov`, {
         type: 'video/quicktime',
       })
     }
+
+    if (tool === 'clarity-gif' || tool === 'clarity-mp4' || tool === 'clarity-mov') {
+      const format = tool === 'clarity-gif' ? 'gif' : tool === 'clarity-mov' ? 'mov' : 'mp4'
+      const out = await enhanceClarity(source.file, {
+        format,
+        level: clarityLevel,
+        ...common,
+      })
+      return new File(
+        [out],
+        `${baseName(source.file.name)}-clarity.${format}`,
+        { type: out.type },
+      )
+    }
+
     return null
   }
 
@@ -344,14 +495,15 @@ export default function GifCompress() {
     resetResult()
     setProgress(0)
     setStatus(
-      tool === 'compress'
-        ? '正在压缩…大文件可能需要几十秒，请稍候。'
-        : '正在准备转换…',
+      mainTab === 'compress'
+        ? '正在压缩…'
+        : mainTab === 'clarity'
+          ? '正在增强清晰度…'
+          : '正在转换…',
     )
 
     try {
-      const outFile =
-        tool === 'compress' ? await runCompress() : await runConvert()
+      const outFile = await runAction()
       if (!outFile) throw new Error('未得到输出文件。')
 
       const url = URL.createObjectURL(outFile)
@@ -364,7 +516,7 @@ export default function GifCompress() {
 
       const saved = source.bytes - outFile.size
       const pct = source.bytes > 0 ? (saved / source.bytes) * 100 : 0
-      if (tool === 'compress') {
+      if (mainTab === 'compress') {
         setStatus(
           pct > 0
             ? `完成：${formatBytes(source.bytes)} → ${formatBytes(outFile.size)}（减小 ${pct.toFixed(1)}%）`
@@ -405,91 +557,119 @@ export default function GifCompress() {
     previewTarget === 'source'
       ? sourceLabel(tool)
       : previewTarget === 'result'
-        ? resultLabel(tool)
+        ? resultLabel(mainTab, tool)
         : ''
   const canCompare = Boolean(source && result)
   const showCompare = compareMode && canCompare
   const isVideoToGif = tool === 'mov-to-gif' || tool === 'mp4-to-gif'
+  const isGifCompress = tool === 'compress-gif'
+  const isVideoCompress = tool === 'compress-mp4' || tool === 'compress-mov'
+  const usesFfmpegProgress = !isGifCompress
 
   const ratio =
     source && result && source.bytes > 0
       ? ((1 - result.bytes / source.bytes) * 100).toFixed(1)
       : null
 
-  const activeHint =
-    tool !== 'compress'
-      ? isVideoToGif
-        ? keepQuality
-          ? '当前为原画质转换：保留原始尺寸与全部帧，不主动压缩体积。'
-          : `自定义参数：${fps} fps，最大宽度 ${maxWidth}px（仅在需要时使用）。`
-        : '格式转换默认高画质输出；体积变大/变小取决于格式本身，不是刻意压缩。'
-      : preset === 'custom'
-        ? `自定义 lossy=${lossy}：数值越大体积越小，噪点可能更明显（建议 20–60）。`
-        : PRESETS[preset].hint
+  const activeHint = (() => {
+    if (mainTab === 'clarity') {
+      return `当前强度：${CLARITY_LEVELS.find((l) => l.id === clarityLevel)?.label}。过强可能出现锐化噪点。`
+    }
+    if (isVideoToGif) {
+      return keepQuality
+        ? '当前为原画质转换：保留原始尺寸与全部帧。'
+        : `自定义参数：${fps} fps，最大宽度 ${maxWidth}px。`
+    }
+    if (isGifCompress) {
+      return gifPreset === 'custom'
+        ? `自定义 lossy=${lossy}（建议 20–60）。`
+        : GIF_PRESETS[gifPreset].hint
+    }
+    if (isVideoCompress) {
+      return videoPreset === 'custom'
+        ? `自定义 CRF=${crf}（数值越大体积越小，建议 20–30）。`
+        : VIDEO_PRESETS[videoPreset].hint
+    }
+    return '格式转换默认高画质输出；体积变化取决于格式本身。'
+  })()
+
+  const subTools =
+    mainTab === 'compress'
+      ? COMPRESS_TOOLS
+      : mainTab === 'convert'
+        ? CONVERT_TOOLS
+        : CLARITY_TOOLS
+
+  const subSelected =
+    mainTab === 'compress'
+      ? `compress-${compressId}`
+      : mainTab === 'convert'
+        ? convertId
+        : `clarity-${clarityId}`
 
   return (
     <main className="gif-compress">
       <div className="gif-compress__shell">
         <header className="gif-compress__header">
           <p className="gif-compress__eyebrow">Local tool</p>
-          <h1 className="gif-compress__title">gif压缩工具</h1>
-          <p className="gif-compress__lead">
-            {mainTab === 'convert' ? CONVERT_LEAD : pageLead}
-          </p>
+          <h1 className="gif-compress__title">压缩转格式工具</h1>
+          <p className="gif-compress__lead">{MAIN_LEADS[mainTab]}</p>
         </header>
 
         <section className="gif-compress__panel">
           <div className="gif-compress__tools" role="tablist" aria-label="功能">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mainTab === 'compress'}
-              className={`gif-compress__tool${
-                mainTab === 'compress' ? ' gif-compress__tool--active' : ''
-              }`}
-              onClick={() => switchMainTab('compress')}
-            >
-              GIF 压缩
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mainTab === 'convert'}
-              className={`gif-compress__tool${
-                mainTab === 'convert' ? ' gif-compress__tool--active' : ''
-              }`}
-              onClick={() => switchMainTab('convert')}
-            >
-              转格式
-            </button>
+            {(
+              [
+                ['compress', '压缩'],
+                ['convert', '转格式'],
+                ['clarity', '增加清晰度'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={mainTab === id}
+                className={`gif-compress__tool${
+                  mainTab === id ? ' gif-compress__tool--active' : ''
+                }`}
+                onClick={() => switchMainTab(id)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
-          {mainTab === 'convert' ? (
-            <div
-              className="gif-compress__subtools"
-              role="tablist"
-              aria-label="转换方式"
-            >
-              {CONVERT_TOOLS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={convertId === item.id}
-                  className={`gif-compress__subtool${
-                    convertId === item.id ? ' gif-compress__subtool--active' : ''
-                  }`}
-                  onClick={() => switchConvert(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <div
+            className="gif-compress__subtools"
+            role="tablist"
+            aria-label="二级功能"
+          >
+            {subTools.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={subSelected === item.id}
+                className={`gif-compress__subtool${
+                  subSelected === item.id ? ' gif-compress__subtool--active' : ''
+                }`}
+                onClick={() => {
+                  if (mainTab === 'compress') {
+                    switchCompress(item.id.replace('compress-', '') as CompressId)
+                  } else if (mainTab === 'convert') {
+                    switchConvert(item.id as ConvertId)
+                  } else {
+                    switchClarity(item.id.replace('clarity-', '') as ClarityId)
+                  }
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
-          {mainTab === 'convert' ? (
-            <p className="gif-compress__sublead">{activeTool.lead}</p>
-          ) : null}
+          <p className="gif-compress__sublead">{activeTool.lead}</p>
 
           <label
             className={`gif-compress__drop${dragOver ? ' gif-compress__drop--active' : ''}`}
@@ -531,41 +711,36 @@ export default function GifCompress() {
           </label>
 
           <div className="gif-compress__controls">
-            {tool === 'compress' ? (
+            {isGifCompress ? (
               <>
                 <div>
                   <span className="gif-compress__label">压缩模式</span>
-                  <div
-                    className="gif-compress__presets"
-                    role="group"
-                    aria-label="压缩模式"
-                  >
-                    {(Object.keys(PRESETS) as Array<keyof typeof PRESETS>).map(
+                  <div className="gif-compress__presets" role="group">
+                    {(Object.keys(GIF_PRESETS) as Array<keyof typeof GIF_PRESETS>).map(
                       (id) => (
                         <button
                           key={id}
                           type="button"
                           className={`gif-compress__preset${
-                            preset === id ? ' gif-compress__preset--active' : ''
+                            gifPreset === id ? ' gif-compress__preset--active' : ''
                           }`}
-                          onClick={() => applyPreset(id)}
+                          onClick={() => applyGifPreset(id)}
                         >
-                          {PRESETS[id].label}
+                          {GIF_PRESETS[id].label}
                         </button>
                       ),
                     )}
                     <button
                       type="button"
                       className={`gif-compress__preset${
-                        preset === 'custom' ? ' gif-compress__preset--active' : ''
+                        gifPreset === 'custom' ? ' gif-compress__preset--active' : ''
                       }`}
-                      onClick={() => setPreset('custom')}
+                      onClick={() => setGifPreset('custom')}
                     >
                       自定义
                     </button>
                   </div>
                 </div>
-
                 <div className="gif-compress__slider-row">
                   <div className="gif-compress__slider-meta">
                     <span>lossy 强度</span>
@@ -576,10 +751,57 @@ export default function GifCompress() {
                     type="range"
                     min={1}
                     max={120}
-                    step={1}
                     value={lossy}
                     onChange={(e) => onLossyChange(Number(e.target.value))}
-                    aria-label="lossy 强度"
+                  />
+                </div>
+              </>
+            ) : null}
+
+            {isVideoCompress ? (
+              <>
+                <div>
+                  <span className="gif-compress__label">压缩模式</span>
+                  <div className="gif-compress__presets" role="group">
+                    {(
+                      Object.keys(VIDEO_PRESETS) as Array<keyof typeof VIDEO_PRESETS>
+                    ).map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        className={`gif-compress__preset${
+                          videoPreset === id ? ' gif-compress__preset--active' : ''
+                        }`}
+                        onClick={() => applyVideoPreset(id)}
+                      >
+                        {VIDEO_PRESETS[id].label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className={`gif-compress__preset${
+                        videoPreset === 'custom'
+                          ? ' gif-compress__preset--active'
+                          : ''
+                      }`}
+                      onClick={() => setVideoPreset('custom')}
+                    >
+                      自定义
+                    </button>
+                  </div>
+                </div>
+                <div className="gif-compress__slider-row">
+                  <div className="gif-compress__slider-meta">
+                    <span>CRF（越大越小）</span>
+                    <strong>{crf}</strong>
+                  </div>
+                  <input
+                    className="gif-compress__slider"
+                    type="range"
+                    min={18}
+                    max={35}
+                    value={crf}
+                    onChange={(e) => onCrfChange(Number(e.target.value))}
                   />
                 </div>
               </>
@@ -589,7 +811,7 @@ export default function GifCompress() {
               <>
                 <div>
                   <span className="gif-compress__label">转换质量</span>
-                  <div className="gif-compress__presets" role="group" aria-label="转换质量">
+                  <div className="gif-compress__presets" role="group">
                     <button
                       type="button"
                       className={`gif-compress__preset${
@@ -610,7 +832,6 @@ export default function GifCompress() {
                     </button>
                   </div>
                 </div>
-
                 {!keepQuality ? (
                   <>
                     <div className="gif-compress__slider-row">
@@ -623,10 +844,8 @@ export default function GifCompress() {
                         type="range"
                         min={6}
                         max={30}
-                        step={1}
                         value={fps}
                         onChange={(e) => setFps(Number(e.target.value))}
-                        aria-label="帧率"
                       />
                     </div>
                     <div className="gif-compress__slider-row">
@@ -642,12 +861,33 @@ export default function GifCompress() {
                         step={40}
                         value={maxWidth}
                         onChange={(e) => setMaxWidth(Number(e.target.value))}
-                        aria-label="最大宽度"
                       />
                     </div>
                   </>
                 ) : null}
               </>
+            ) : null}
+
+            {mainTab === 'clarity' ? (
+              <div>
+                <span className="gif-compress__label">增强强度</span>
+                <div className="gif-compress__presets" role="group">
+                  {CLARITY_LEVELS.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`gif-compress__preset${
+                        clarityLevel === item.id
+                          ? ' gif-compress__preset--active'
+                          : ''
+                      }`}
+                      onClick={() => setClarityLevel(item.id)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : null}
 
             <div className="gif-compress__actions">
@@ -658,9 +898,9 @@ export default function GifCompress() {
                 onClick={() => void startAction()}
               >
                 {busy
-                  ? tool === 'compress'
-                    ? '压缩中…'
-                    : `转换中… ${Math.round(progress * 100)}%`
+                  ? usesFfmpegProgress
+                    ? `处理中… ${Math.round(progress * 100)}%`
+                    : '处理中…'
                   : activeTool.actionLabel}
               </button>
               {result ? (
@@ -694,7 +934,7 @@ export default function GifCompress() {
           </p>
           <p className="gif-compress__note">{activeHint}</p>
 
-          {busy && tool !== 'compress' ? (
+          {busy && usesFfmpegProgress ? (
             <div
               className="gif-compress__progress"
               role="progressbar"
@@ -732,7 +972,7 @@ export default function GifCompress() {
                 </article>
                 <article className="gif-compress__card">
                   <div className="gif-compress__card-head">
-                    <strong>{resultLabel(tool)}</strong>
+                    <strong>{resultLabel(mainTab, tool)}</strong>
                     <span>{result ? formatBytes(result.bytes) : '—'}</span>
                   </div>
                   <div className="gif-compress__preview">
@@ -841,7 +1081,7 @@ export default function GifCompress() {
                   </figure>
                   <figure className="gif-compress__modal-figure">
                     <figcaption>
-                      {resultLabel(tool)} · {formatBytes(result.bytes)}
+                      {resultLabel(mainTab, tool)} · {formatBytes(result.bytes)}
                     </figcaption>
                     <div className="gif-compress__modal-media">
                       <MediaPreview meta={result} alt="结果对比预览" />
