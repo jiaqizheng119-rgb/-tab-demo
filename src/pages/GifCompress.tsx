@@ -607,6 +607,14 @@ export default function GifCompress() {
         url,
         bytes: outFile.size,
         kind: mediaKindFromFile(outFile),
+        width: null,
+        height: null,
+      })
+      void readMediaSize(outFile, url).then(({ width, height }) => {
+        setResult((prev) => {
+          if (!prev || prev.url !== url) return prev
+          return { ...prev, width, height }
+        })
       })
 
       const saved = source.bytes - outFile.size
