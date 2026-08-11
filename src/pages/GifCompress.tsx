@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import gifsicle from 'gifsicle-wasm-browser'
 import {
   compressVideo,
@@ -8,6 +9,7 @@ import {
   videoToGif,
 } from '../lib/ffmpegClient'
 import '../gif-compress.css'
+import '../toolbox.css'
 
 type MainTab = 'compress' | 'convert' | 'clarity'
 
@@ -728,8 +730,10 @@ export default function GifCompress() {
     <main className="gif-compress">
       <div className="gif-compress__shell">
         <header className="gif-compress__header">
-          <p className="gif-compress__eyebrow">Local tool</p>
-          <h1 className="gif-compress__title">压缩转格式工具</h1>
+          <Link className="toolbox-page__back" to="/">
+            ← 返回工具箱
+          </Link>
+          <h1 className="gif-compress__title">视频工具</h1>
           <p className="gif-compress__lead">{MAIN_LEADS[mainTab]}</p>
         </header>
 
